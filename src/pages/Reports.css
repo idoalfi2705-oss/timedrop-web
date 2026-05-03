@@ -1,0 +1,25 @@
+.pct-badge {
+  background: var(--success-light);
+  color: #065f46;
+  padding: 3px 8px;
+  border-radius: 99px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.reports-table td { background: #fff; }
+.reports-table tr:nth-child(even) td { background: var(--gray-50); }
+
+.bar-legend-item { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
+.bar-legend-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--blue-600); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+}
+.bar-legend-name { flex: 1; color: var(--gray-700); font-weight: 500; }
+.bar-legend-val  { color: var(--gray-500); font-size: 0.8rem; }
+
+.reports-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 900px) { .reports-grid { grid-template-columns: 1fr; } }
+.reports-page .card-padded { padding: 20px 24px; }
+.text-bold { font-weight: 700; color: var(--gray-900); }

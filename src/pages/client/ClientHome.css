@@ -1,0 +1,104 @@
+.client-home { display: flex; flex-direction: column; gap: 20px; }
+
+.ch-welcome { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.ch-welcome h1 { font-size: 1.5rem; font-weight: 800; color: var(--gray-900); margin-bottom: 4px; }
+.ch-welcome p  { font-size: 0.875rem; color: var(--gray-500); }
+
+/* Stats */
+.ch-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+@media (max-width: 700px) { .ch-stats { grid-template-columns: repeat(2, 1fr); } }
+.ch-stat {
+  background: #fff; border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md); padding: 16px 18px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: var(--shadow-card); color: var(--blue-600);
+}
+.ch-stat-val { font-size: 1.2rem; font-weight: 800; color: var(--gray-900); }
+.ch-stat-lbl { font-size: 0.78rem; color: var(--gray-400); margin-top: 2px; }
+
+/* Tracker */
+.ch-tracker.card-padded { padding: 22px 24px; border: 2px solid var(--blue-400); }
+.ch-tracker-header { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.ch-tracker-pulse {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--blue-50); color: var(--blue-600);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  animation: pulse-ring 1.5s ease-in-out infinite;
+}
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(30,127,224,0.4); }
+  70%  { box-shadow: 0 0 0 10px rgba(30,127,224,0); }
+  100% { box-shadow: 0 0 0 0 rgba(30,127,224,0); }
+}
+.ch-tracker-title { font-size: 1rem; font-weight: 800; color: var(--gray-900); }
+.ch-tracker-sub   { font-size: 0.82rem; color: var(--gray-500); margin-top: 2px; }
+.ch-call-btn {
+  display: flex; align-items: center; gap: 7px;
+  margin-right: auto; background: var(--success-light);
+  color: #065f46; border-radius: var(--radius-sm);
+  padding: 8px 16px; font-size: 0.875rem; font-weight: 600;
+  text-decoration: none; transition: all var(--transition);
+}
+.ch-call-btn:hover { background: #a7f3d0; }
+
+/* Progress */
+.ch-progress-track {
+  height: 10px; background: var(--gray-200); border-radius: 99px;
+  overflow: visible; position: relative; margin-bottom: 8px;
+}
+.ch-progress-fill {
+  height: 100%; background: var(--blue-600); border-radius: 99px;
+  position: relative; transition: width 2s ease;
+  min-width: 24px;
+}
+.ch-truck-icon {
+  position: absolute; left: -4px; top: 50%; transform: translateY(-50%);
+  width: 26px; height: 26px; background: var(--blue-600); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; color: #fff;
+  box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--blue-300);
+}
+.ch-progress-labels {
+  display: flex; justify-content: space-between;
+  font-size: 0.75rem; color: var(--gray-400); margin-bottom: 16px;
+}
+
+.ch-map-real {
+  width: 100%;
+  height: 220px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 14px;
+  overflow: hidden;
+  border: 1px solid var(--gray-200);
+}
+
+
+.ch-tracker-items { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.ch-tracker-item {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--blue-50); color: var(--blue-700);
+  padding: 4px 10px; border-radius: 99px; font-size: 0.8rem; font-weight: 500;
+}
+.ch-tracker-total { font-size: 0.875rem; color: var(--gray-500); }
+.ch-tracker-total strong { color: var(--gray-900); font-size: 1rem; }
+
+/* Recent orders */
+.ch-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.ch-section-header h2 { font-size: 1rem; font-weight: 700; color: var(--gray-900); }
+.ch-orders-list { display: flex; flex-direction: column; gap: 2px; }
+.ch-order-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 8px; border-radius: var(--radius-sm);
+  transition: background var(--transition);
+}
+.ch-order-row:hover { background: var(--gray-50); }
+.ch-order-icon { flex-shrink: 0; }
+.ch-order-info { min-width: 110px; }
+.ch-order-id   { font-size: 0.875rem; font-weight: 700; color: var(--gray-900); }
+.ch-order-date { font-size: 0.75rem; color: var(--gray-400); }
+.ch-order-items { flex: 1; display: flex; gap: 6px; flex-wrap: wrap; }
+.ch-order-item-chip {
+  background: var(--gray-100); color: var(--gray-600);
+  padding: 2px 8px; border-radius: 99px; font-size: 0.75rem;
+}
+.ch-order-total { font-size: 0.875rem; font-weight: 700; color: var(--gray-900); min-width: 70px; text-align: left; }
+.ch-order-rating { font-size: 0.8rem; color: var(--warning); }

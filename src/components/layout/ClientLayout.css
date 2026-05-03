@@ -1,0 +1,43 @@
+.client-layout { display: flex; flex-direction: column; min-height: 100vh; direction: rtl; background: var(--gray-50); }
+
+.cl-topbar {
+  height: 62px; background: var(--blue-900);
+  display: flex; align-items: center; gap: 24px;
+  padding: 0 28px; position: sticky; top: 0; z-index: 100;
+}
+
+.cl-logo { display: flex; align-items: center; gap: 8px; }
+.cl-logo-icon {
+  width: 34px; height: 34px; background: var(--blue-600);
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  color: #fff; position: relative; flex-shrink: 0;
+}
+.cl-logo-clock { position: absolute; bottom: 4px; left: 4px; background: var(--blue-900); border-radius: 50%; padding: 1px; }
+.cl-logo span { font-size: 1.15rem; font-weight: 800; color: #fff; }
+
+.cl-nav { display: flex; gap: 4px; flex: 1; justify-content: center; }
+.cl-link {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 16px; border-radius: var(--radius-sm);
+  color: rgba(255,255,255,0.6); font-size: 0.875rem; font-weight: 500;
+  transition: all var(--transition);
+}
+.cl-link:hover  { color: #fff; background: rgba(255,255,255,0.08); }
+.cl-link.active { color: #fff; background: var(--blue-600); }
+
+.cl-user { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+.cl-user-avatar {
+  width: 32px; height: 32px; background: var(--blue-600); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 0.875rem;
+}
+.cl-user-name { font-size: 0.85rem; color: rgba(255,255,255,0.8); font-weight: 500; }
+.cl-logout {
+  background: none; border: none; color: rgba(255,255,255,0.4);
+  cursor: pointer; padding: 6px; border-radius: 8px;
+  display: flex; transition: all var(--transition);
+}
+.cl-logout:hover { color: var(--danger); background: rgba(239,68,68,0.15); }
+
+.cl-main { flex: 1; }
+.cl-content { max-width: 1000px; margin: 0 auto; padding: 28px 24px; }

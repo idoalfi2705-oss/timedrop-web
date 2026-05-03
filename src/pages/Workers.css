@@ -1,0 +1,63 @@
+.workers-page { display: flex; flex-direction: column; gap: 20px; }
+.workers-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+@media (max-width: 900px) { .workers-grid { grid-template-columns: 1fr; } }
+
+.worker-card.card-padded { padding: 20px; }
+.worker-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.worker-card-avatar {
+  width: 46px; height: 46px; background: var(--blue-100); color: var(--blue-700);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; font-weight: 800; flex-shrink: 0;
+}
+.worker-card-name { font-size: 1rem; font-weight: 700; color: var(--gray-900); }
+.worker-card-area { font-size: 0.8rem; color: var(--gray-400); }
+.worker-card-header .badge { margin-right: auto; }
+
+.worker-card-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin-bottom: 14px;
+}
+.wstat {
+  display: flex; flex-direction: column; align-items: center;
+  background: var(--gray-50); border-radius: var(--radius-sm); padding: 10px 8px; gap: 3px;
+  color: var(--blue-600);
+}
+.wstat span { font-size: 1rem; font-weight: 800; color: var(--gray-900); }
+.wstat small { font-size: 0.72rem; color: var(--gray-400); text-align: center; }
+
+.worker-shift { font-size: 0.82rem; color: var(--gray-500); margin-bottom: 12px; }
+.worker-shift span { font-weight: 600; color: var(--gray-700); }
+
+.worker-leave-request {
+  background: var(--warning-light);
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
+.worker-leave-info {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.85rem; color: #92400e; font-weight: 500;
+  margin-bottom: 10px;
+}
+.worker-leave-actions { display: flex; gap: 8px; }
+.leave-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 14px; border-radius: 99px; font-family: var(--font-main);
+  font-size: 0.8rem; font-weight: 700; cursor: pointer; border: none;
+  transition: all var(--transition);
+}
+.leave-btn.approve { background: var(--success); color: #fff; }
+.leave-btn.approve:hover { background: #059669; }
+.leave-btn.reject  { background: var(--gray-200); color: var(--gray-700); }
+.leave-btn.reject:hover  { background: var(--gray-300); }
+
+.workers-table td { background: #fff; }
+.workers-table tr:nth-child(even) td { background: var(--gray-50); }
+.pct-badge { background: var(--blue-50); color: var(--blue-700); padding: 2px 8px; border-radius: 99px; font-size: 0.75rem; font-weight: 700; }
+.leave-mini { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
+.leave-mini.approve { background: var(--success-light); color: var(--success); }
+.leave-mini.reject  { background: var(--danger-light);  color: var(--danger); }
+.file-upload-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; background: var(--blue-50); color: var(--blue-700); border: 1.5px dashed var(--blue-300); border-radius: var(--radius-sm); font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all var(--transition); font-family: var(--font-main); }
+.file-upload-btn:hover { background: var(--blue-100); }
+.uploaded-files { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.file-chip { background: var(--gray-100); color: var(--gray-600); padding: 3px 10px; border-radius: 99px; font-size: 0.78rem; }

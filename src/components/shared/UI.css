@@ -1,0 +1,135 @@
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: none; border-radius: var(--radius-sm);
+  font-family: var(--font-main); font-weight: 600;
+  cursor: pointer; transition: all var(--transition);
+  white-space: nowrap;
+}
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.btn-primary   { background: var(--blue-600); color: #fff; }
+.btn-primary:hover:not(:disabled)   { background: var(--blue-700); }
+
+.btn-secondary { background: var(--gray-100); color: var(--gray-700); border: 1.5px solid var(--gray-200); }
+.btn-secondary:hover:not(:disabled) { background: var(--gray-200); }
+
+.btn-danger    { background: var(--danger); color: #fff; }
+.btn-danger:hover:not(:disabled)    { background: #dc2626; }
+
+.btn-ghost     { background: transparent; color: var(--blue-600); }
+.btn-ghost:hover:not(:disabled)     { background: var(--blue-50); }
+
+.btn-sm  { padding: 6px 14px;  font-size: 0.8rem; }
+.btn-md  { padding: 9px 18px;  font-size: 0.875rem; }
+.btn-lg  { padding: 12px 24px; font-size: 1rem; }
+
+.btn-icon { display: flex; align-items: center; }
+.btn-spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* ── Card ── */
+.card {
+  background: #fff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-card);
+}
+.card-padded { padding: 20px 24px; }
+
+/* ── Badges ── */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.badge-blue   { background: var(--blue-50);      color: var(--blue-700); }
+.badge-green  { background: var(--success-light); color: #065f46; }
+.badge-yellow { background: var(--warning-light); color: #92400e; }
+.badge-red    { background: var(--danger-light);  color: #991b1b; }
+.badge-gray   { background: var(--gray-100);      color: var(--gray-600); }
+
+/* ── KPI Card ── */
+.kpi-card {
+  background: #fff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-card);
+  padding: 20px 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.kpi-icon {
+  width: 48px; height: 48px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.kpi-blue   .kpi-icon { background: var(--blue-50);      color: var(--blue-600); }
+.kpi-green  .kpi-icon { background: var(--success-light); color: var(--success); }
+.kpi-yellow .kpi-icon { background: var(--warning-light); color: var(--warning); }
+.kpi-red    .kpi-icon { background: var(--danger-light);  color: var(--danger);  }
+
+.kpi-body { flex: 1; }
+.kpi-value {
+  font-size: 1.7rem; font-weight: 800;
+  color: var(--gray-900); line-height: 1.1;
+}
+.kpi-label {
+  font-size: 0.85rem; color: var(--gray-500);
+  margin-top: 2px;
+}
+.kpi-sub { font-size: 0.78rem; color: var(--gray-400); margin-top: 2px; }
+.kpi-trend {
+  font-size: 0.75rem; font-weight: 700;
+  padding: 3px 8px; border-radius: 99px;
+  align-self: flex-start;
+}
+.kpi-trend.up   { background: var(--success-light); color: #065f46; }
+.kpi-trend.down { background: var(--danger-light);  color: #991b1b; }
+
+/* ── Section Header ── */
+.section-header {
+  display: flex; align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.section-title { font-size: 1.05rem; font-weight: 700; color: var(--gray-900); }
+.section-sub   { font-size: 0.82rem; color: var(--gray-500); margin-top: 2px; }
+
+/* ── Empty state ── */
+.empty-state {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 48px;
+  color: var(--gray-400);
+  gap: 12px;
+  text-align: center;
+}
+.empty-icon { font-size: 2.5rem; opacity: 0.5; }
+
+/* ── Avatar ── */
+.avatar {
+  border-radius: 50%;
+  background: var(--blue-600);
+  color: #fff;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.avatar-sm { width: 28px; height: 28px; font-size: 0.75rem; }
+.avatar-md { width: 36px; height: 36px; font-size: 0.9rem; }
+.avatar-lg { width: 48px; height: 48px; font-size: 1.1rem; }
