@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, LabelList } from 'recharts';
-import { TrendingUp, ShoppingCart, Clock, AlertTriangle, Truck, Plus, FileText, Package } from 'lucide-react';
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { TrendingUp, ShoppingCart, Clock, AlertTriangle, Truck, Plus, FileText, Package, X } from 'lucide-react';
 import { KpiCard, Card, SectionHeader, StatusBadge, Btn } from '../components/shared/UI';
 import { ordersAPI, workersAPI } from '../utils/api';
 import { useApi, useMutation } from '../hooks/useApi';
-import { kpiData, revenueByDay, ordersByProduct, mockOrders, mockWorkers } from '../utils/mockData';
+import { kpiData, revenueByDay, ordersByProduct, mockOrders, mockWorkers, mockWarehouseItems } from '../utils/mockData';
 import toast from 'react-hot-toast';
 import './Dashboard.css';
 
@@ -21,19 +21,31 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-// מספר בתוך עמודה
 const renderBarNum = (props) => {
   const { x, y, width, height, index } = props;
-  if (width < 20) return (
-    <text x={x+width+5} y={y+height/2} fill="#1e7fe0" dominantBaseline="middle" style={{fontSize:11,fontFamily:'Heebo',fontWeight:700}}>{index+1}</text>
-  );
-  return (
-    <text x={x+8} y={y+height/2} fill="#fff" dominantBaseline="middle" style={{fontSize:11,fontFamily:'Heebo',fontWeight:700}}>{index+1}</text>
-  );
+  if (width < 20) return <text x={x+width+5} y={y+height/2} fill="#1e7fe0" dominantBaseline="middle" style={{fontSize:11,fontFamily:'Heebo',fontWeight:700}}>{index+1}</text>;
+  return <text x={x+8} y={y+height/2} fill="#fff" dominantBaseline="middle" style={{fontSize:11,fontFamily:'Heebo',fontWeight:700}}>{index+1}</text>;
 };
 
+// Drawer component
+function Drawer({ title, onClose, children }) {
+  return (
+    <>
+      <div className="drawer-overlay" onClick={onClose}/>
+      <div className="drawer animate-slide">
+        <div className="drawer-header">
+          <h2>{title}</h2>
+          <button className="drawer-close" onClick={onClose}><X size={18}/></button>
+        </div>
+        <div className="drawer-body">{children}</div>
+      </div>
+    </>
+  );
+}
+
 export default function Dashboard() {
-  const [period, setPeriod] = useState('month');
+  const [period,  setPeriod]  = useState('month');
+  const [drawer,  setDrawer]  = useState(null); // 'revenue' | 'profit' | 'orders' | 'workers' | 'stock'
   const navigate = useNavigate();
 
   const { data: leaveRequests, refetch: refetchLeave } = useApi(() => workersAPI.getLeaveRequests().catch(() => []), []);
@@ -45,17 +57,19 @@ export default function Dashboard() {
   };
 
   const filteredData = useMemo(() => {
-    if (period === 'day')   return revenueByDay.slice(-1);
-    if (period === 'week')  return revenueByDay.slice(-7);
-    if (period === 'year')  return revenueByDay;
+    if (period === 'day')  return revenueByDay.slice(-1);
+    if (period === 'week') return revenueByDay.slice(-7);
+    if (period === 'year') return revenueByDay;
     return revenueByDay.slice(-30);
   }, [period]);
 
-  const displayOrders  = orders || mockOrders;
-  const pending        = displayOrders.filter(o => o.status === 'pending');
-  const periodRevenue  = filteredData.reduce((s,d) => s+d.הכנסות, 0);
-  const periodProfit   = filteredData.reduce((s,d) => s+d.רווח, 0);
-  const periodLabel    = { day:'היום', week:'השבוע', month:'החודש', year:'השנה' }[period];
+  const displayOrders = orders || mockOrders;
+  const pending       = displayOrders.filter(o => o.status === 'pending');
+  const periodRevenue = filteredData.reduce((s,d) => s+d.הכנסות, 0);
+  const periodProfit  = filteredData.reduce((s,d) => s+d.רווח, 0);
+  const periodLabel   = { day:'היום', week:'השבוע', month:'החודש', year:'השנה' }[period];
+  const lowStock      = mockWarehouseItems.filter(i => i.qty < i.min);
+  const activeWorkers = mockWorkers.filter(w => w.status === 'active');
 
   return (
     <div className="dashboard animate-fade">
@@ -88,22 +102,24 @@ export default function Dashboard() {
             </div>
           ))}
           {pending.length > 0 && (
-            <div className="alert-chip alert-blue" style={{cursor:'pointer'}} onClick={()=>navigate('/dashboard/orders')}>
-              <Clock size={14}/><span>{pending.length} הזמנות ממתינות – לחץ לצפייה</span>
+            <div className="alert-chip alert-blue" style={{cursor:'pointer'}} onClick={()=>setDrawer('orders')}>
+              <Clock size={14}/><span>{pending.length} הזמנות ממתינות – לחץ לפירוט</span>
             </div>
           )}
         </div>
       )}
 
+      {/* KPIs – לחיצה פותחת פירוט */}
       <div className="kpi-grid">
-        <KpiCard label={`הכנסות – ${periodLabel}`} value={fmt(periodRevenue)} icon={<TrendingUp size={22}/>}    color="blue"   trend={12}/>
-        <KpiCard label={`רווח – ${periodLabel}`}   value={fmt(periodProfit)}  icon={<ShoppingCart size={22}/>}  color="green"  trend={8}/>
-        <KpiCard label="הזמנות פתוחות"             value={pending.length}     icon={<Clock size={22}/>}         color="yellow"/>
-        <KpiCard label="עובדים פעילים"             value={`${kpiData.activeWorkers}/4`} icon={<Truck size={22}/>} color="blue"/>
-        <KpiCard label="מלאי נמוך"                 value={kpiData.lowStockItems} icon={<AlertTriangle size={22}/>} color="red" sub="פריטים דורשים הזמנה"/>
+        <KpiCard label={`הכנסות – ${periodLabel}`} value={fmt(periodRevenue)} icon={<TrendingUp size={22}/>}    color="blue"   trend={12} onClick={() => setDrawer('revenue')}/>
+        <KpiCard label={`רווח – ${periodLabel}`}   value={fmt(periodProfit)}  icon={<ShoppingCart size={22}/>}  color="green"  trend={8}  onClick={() => setDrawer('profit')}/>
+        <KpiCard label="הזמנות פתוחות"             value={pending.length}     icon={<Clock size={22}/>}         color="yellow"            onClick={() => setDrawer('orders')}/>
+        <KpiCard label="עובדים פעילים"             value={`${activeWorkers.length}/4`} icon={<Truck size={22}/>} color="blue"             onClick={() => setDrawer('workers')}/>
+        <KpiCard label="מלאי נמוך"                 value={lowStock.length}    icon={<AlertTriangle size={22}/>} color="red"   sub="לחץ לצפייה" onClick={() => setDrawer('stock')}/>
         <KpiCard label="זמן משלוח ממוצע"           value={`${kpiData.avgDeliveryTime} דק'`} icon={<Clock size={22}/>} color="green" trend={-5}/>
       </div>
 
+      {/* Charts */}
       <div className="charts-row">
         <Card className="chart-card chart-large">
           <SectionHeader title="הכנסות ורווח" sub={`${filteredData.length} ימים`}/>
@@ -123,7 +139,6 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </Card>
 
-        {/* מכירות לפי מוצר – ממוספר */}
         <Card className="chart-card chart-small">
           <SectionHeader title="מכירות לפי מוצר"/>
           <ResponsiveContainer width="100%" height={220}>
@@ -134,7 +149,6 @@ export default function Dashboard() {
               <Bar dataKey="הכנסה" fill="#1e7fe0" radius={[0,4,4,0]} label={renderBarNum} isAnimationActive={false}/>
             </BarChart>
           </ResponsiveContainer>
-          {/* פירוט ממוספר */}
           <div className="mini-legend">
             {ordersByProduct.map((p,i) => (
               <div key={i} className="mini-legend-item">
@@ -147,6 +161,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      {/* Bottom */}
       <div className="bottom-row">
         <Card className="table-card" padding={false}>
           <div style={{padding:'20px 24px 0'}}>
@@ -184,6 +199,75 @@ export default function Dashboard() {
           </div>
         </Card>
       </div>
+
+      {/* Drawers */}
+      {drawer === 'revenue' && (
+        <Drawer title={`פירוט הכנסות – ${periodLabel}`} onClose={() => setDrawer(null)}>
+          <div className="drawer-summary">
+            <div className="drawer-stat"><div className="drawer-stat-val">{fmt(periodRevenue)}</div><div className="drawer-stat-lbl">סה"כ הכנסות</div></div>
+            <div className="drawer-stat"><div className="drawer-stat-val">{fmt(periodProfit)}</div><div className="drawer-stat-lbl">רווח</div></div>
+            <div className="drawer-stat"><div className="drawer-stat-val">{Math.round((periodProfit/periodRevenue)*100)}%</div><div className="drawer-stat-lbl">אחוז רווח</div></div>
+          </div>
+          <table className="data-table">
+            <thead><tr><th>תאריך</th><th>הכנסות</th><th>רווח</th></tr></thead>
+            <tbody>{filteredData.slice(-10).map((d,i)=><tr key={i}><td>{d.date}</td><td className="text-bold">{fmt(d.הכנסות)}</td><td className="text-green">{fmt(d.רווח)}</td></tr>)}</tbody>
+          </table>
+        </Drawer>
+      )}
+
+      {drawer === 'profit' && (
+        <Drawer title={`פירוט רווח – ${periodLabel}`} onClose={() => setDrawer(null)}>
+          <div className="drawer-summary">
+            <div className="drawer-stat"><div className="drawer-stat-val">{fmt(periodProfit)}</div><div className="drawer-stat-lbl">רווח סה"כ</div></div>
+            <div className="drawer-stat"><div className="drawer-stat-val">{Math.round((periodProfit/periodRevenue)*100)}%</div><div className="drawer-stat-lbl">מסה"כ הכנסות</div></div>
+          </div>
+          <table className="data-table">
+            <thead><tr><th>מוצר</th><th>הכנסה</th><th>רווח</th><th>%</th></tr></thead>
+            <tbody>{ordersByProduct.map((p,i)=><tr key={i}><td className="text-bold">{p.name}</td><td>{fmt(p.הכנסה)}</td><td className="text-green">{fmt(p.רווח)}</td><td>{Math.round((p.רווח/p.הכנסה)*100)}%</td></tr>)}</tbody>
+          </table>
+        </Drawer>
+      )}
+
+      {drawer === 'orders' && (
+        <Drawer title="הזמנות ממתינות לאישור" onClose={() => setDrawer(null)}>
+          {pending.length === 0
+            ? <p style={{color:'var(--gray-400)',textAlign:'center',padding:'40px'}}>אין הזמנות ממתינות 🎉</p>
+            : <table className="data-table">
+                <thead><tr><th>#</th><th>לקוח</th><th>תאריך</th><th>סכום</th><th>פעולה</th></tr></thead>
+                <tbody>{pending.map(o=><tr key={o.id}><td className="order-id">#{o.id}</td><td className="text-bold">{o.clientName}</td><td>{new Date(o.date).toLocaleDateString('he-IL')}</td><td>{fmt(o.total)}</td><td><button className="alert-btn approve" onClick={()=>toast.success('הזמנה אושרה!')}>אשר</button></td></tr>)}</tbody>
+              </table>
+          }
+        </Drawer>
+      )}
+
+      {drawer === 'workers' && (
+        <Drawer title="עובדים פעילים" onClose={() => setDrawer(null)}>
+          <table className="data-table">
+            <thead><tr><th>שם</th><th>אזור</th><th>משמרת</th><th>משלוחים</th><th>עמידה</th></tr></thead>
+            <tbody>{activeWorkers.map(w=><tr key={w.id}><td className="text-bold">{w.name}</td><td>{w.area}</td><td>{w.shift}</td><td>{w.deliveries}</td><td>{w.onTime}%</td></tr>)}</tbody>
+          </table>
+        </Drawer>
+      )}
+
+      {drawer === 'stock' && (
+        <Drawer title="מלאי נמוך" onClose={() => setDrawer(null)}>
+          {lowStock.length === 0
+            ? <p style={{color:'var(--gray-400)',textAlign:'center',padding:'40px'}}>אין מלאי נמוך 🎉</p>
+            : <table className="data-table">
+                <thead><tr><th>פריט</th><th>כמות</th><th>מינימום</th><th>מיקום</th><th></th></tr></thead>
+                <tbody>{lowStock.map(i=>(
+                  <tr key={i.id}>
+                    <td className="text-bold">{i.name}</td>
+                    <td style={{color:'var(--danger)',fontWeight:700}}>{i.qty}</td>
+                    <td>{i.min}</td>
+                    <td>{i.location}</td>
+                    <td><button className="alert-btn approve" onClick={()=>toast.success(`הוזמן ${i.name} ✅`)}>הזמן</button></td>
+                  </tr>
+                ))}</tbody>
+              </table>
+          }
+        </Drawer>
+      )}
     </div>
   );
 }

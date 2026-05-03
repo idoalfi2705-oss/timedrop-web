@@ -42,9 +42,9 @@ export function StatusBadge({ status }) {
 }
 
 /* ── KPI Card ── */
-export function KpiCard({ label, value, sub, icon, color = 'blue', trend }) {
+export function KpiCard({ label, value, sub, icon, color = 'blue', trend, onClick }) {
   return (
-    <div className={`kpi-card kpi-${color}`}>
+    <div className={`kpi-card kpi-${color} ${onClick ? 'kpi-clickable' : ''}`} onClick={onClick}>
       <div className="kpi-icon">{icon}</div>
       <div className="kpi-body">
         <div className="kpi-value">{value}</div>
@@ -56,6 +56,7 @@ export function KpiCard({ label, value, sub, icon, color = 'blue', trend }) {
           {trend >= 0 ? '▲' : '▼'} {Math.abs(trend)}%
         </div>
       )}
+      {onClick && <div className="kpi-arrow">←</div>}
     </div>
   );
 }

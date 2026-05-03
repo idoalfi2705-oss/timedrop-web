@@ -68,10 +68,10 @@
   gap: 16px;
   transition: transform var(--transition), box-shadow var(--transition);
 }
-.kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
+.kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.kpi-clickable { cursor: pointer; }
+.kpi-clickable:hover { box-shadow: var(--shadow-md); border: 1.5px solid var(--blue-300); }
+.kpi-arrow { font-size: 0.8rem; color: var(--gray-400); margin-right: auto; align-self: center; }
 .kpi-icon {
   width: 48px; height: 48px;
   border-radius: var(--radius-sm);
