@@ -90,7 +90,7 @@ export default function Settings() {
 
         {/* לוגיסטיקה */}
         <SettingSection icon={<Truck size={18}/>} title="הגדרות לוגיסטיקה">
-          <SettingRow label="שעת הפסקה" sub={'תוצג בלו"ז היומי של עובדים'}>
+          <SettingRow label="שעת הפסקה" sub={'תוצג בלו-ז היומי של עובדים'}>
             <input className="setting-input setting-input-sm" type="time" value={s.breakTime} onChange={e => set('breakTime', e.target.value)}/>
           </SettingRow>
           <SettingRow label="שעת סיום משמרת">
@@ -114,7 +114,7 @@ export default function Settings() {
           <SettingRow label="מלאי נמוך" sub="קבל התראה כשמוצר מגיע לכמות מינימלית">
             <Toggle value={s.notifStock} onChange={v => set('notifStock', v)}/>
           </SettingRow>
-          <SettingRow label={'חריגה מלו"ז'} sub="קבל התראה כשעובד לא עומד בזמנים">
+          <SettingRow label={'חריגה מלו-ז'} sub="קבל התראה כשעובד לא עומד בזמנים">
             <Toggle value={s.notifDelay} onChange={v => set('notifDelay', v)}/>
           </SettingRow>
         </SettingSection>

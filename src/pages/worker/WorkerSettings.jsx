@@ -58,7 +58,7 @@ export default function WorkerSettings() {
           <SettingRow label="עדכון בקשת חופשה" sub="קבל עדכון על אישור/דחיית בקשה">
             <Toggle value={s.notifLeave} onChange={v => set('notifLeave', v)}/>
           </SettingRow>
-          <SettingRow label={'חריגה מלו"ז'} sub="קבל התראה אם אתה מאחר">
+          <SettingRow label={'חריגה מלו-ז'} sub="קבל התראה אם אתה מאחר">
             <Toggle value={s.notifDelay} onChange={v => set('notifDelay', v)}/>
           </SettingRow>
         </Card>
