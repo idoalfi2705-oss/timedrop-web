@@ -1,10 +1,8 @@
 import React from 'react';
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  CartesianGrid, PieChart, Pie, Cell, Legend
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Card, SectionHeader } from '../components/shared/UI';
-import { ordersByProduct, revenueByDay } from '../utils/mockData';
+import { reportsAPI } from '../utils/api';
+import { useApi } from '../hooks/useApi';
 import './Reports.css';
 
 const COLORS = ['#1e7fe0','#10b981','#f59e0b','#ef4444','#8b5cf6'];
@@ -27,27 +25,20 @@ const renderLegend = ({ payload }) => {
   );
 };
 
-// מספר בתוך עמודה – תמיד מציג
 const renderBarLabel = (props) => {
   const { x, y, width, height, index } = props;
   if (width < 20) {
-    // עמודה קצרה – מספר מחוץ
-    return (
-      <text x={x + width + 6} y={y + height / 2} fill="#1e7fe0" dominantBaseline="middle"
-        style={{ fontSize: 12, fontFamily: 'Heebo', fontWeight: 700 }}>
-        {index + 1}
-      </text>
-    );
+    return <text x={x + width + 6} y={y + height / 2} fill="#1e7fe0" dominantBaseline="middle" style={{ fontSize: 12, fontFamily: 'Heebo', fontWeight: 700 }}>{index + 1}</text>;
   }
-  return (
-    <text x={x + 8} y={y + height / 2} fill="#fff" dominantBaseline="middle"
-      style={{ fontSize: 12, fontFamily: 'Heebo', fontWeight: 700 }}>
-      {index + 1}
-    </text>
-  );
+  return <text x={x + 8} y={y + height / 2} fill="#fff" dominantBaseline="middle" style={{ fontSize: 12, fontFamily: 'Heebo', fontWeight: 700 }}>{index + 1}</text>;
 };
 
 export default function Reports() {
+  const { data: revenueData }  = useApi(() => reportsAPI.getRevenueByDay(30), []);
+  const { data: productsData } = useApi(() => reportsAPI.getOrdersByProduct(), []);
+
+  const revenueByDay  = revenueData  || [];
+  const ordersByProduct = productsData || [];
   const pieData = ordersByProduct.map(p => ({ name: p.name, value: p.הכנסה }));
 
   return (
@@ -74,71 +65,74 @@ export default function Reports() {
 
         <Card>
           <SectionHeader title="חלוקת הכנסות לפי מוצר"/>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie data={pieData} cx="50%" cy="45%" outerRadius={100} dataKey="value" label={false}>
-                {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]}/>)}
-              </Pie>
-              <Tooltip formatter={v=>fmt(v)}/>
-              <Legend content={renderLegend}/>
-            </PieChart>
-          </ResponsiveContainer>
+          {pieData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie data={pieData} cx="50%" cy="45%" outerRadius={100} dataKey="value" label={false}>
+                  {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]}/>)}
+                </Pie>
+                <Tooltip formatter={v=>fmt(v)}/>
+                <Legend content={renderLegend}/>
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={{textAlign:'center',padding:'60px 0',color:'var(--gray-400)'}}>אין נתונים להצגה</div>
+          )}
         </Card>
       </div>
 
-      {/* מכירות לפי מוצר */}
-      <Card>
-        <SectionHeader title="מכירות לפי מוצר"/>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={ordersByProduct} layout="vertical" margin={{top:0,right:20,left:10,bottom:0}}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false}/>
-            <XAxis type="number" tick={{fontSize:10}} tickLine={false} axisLine={false} tickFormatter={v=>`₪${v}`}/>
-            <YAxis type="category" dataKey="name" tick={false} tickLine={false} width={8}/>
-            <Tooltip formatter={v=>fmt(v)}/>
-            <Bar dataKey="הכנסה" fill="#1e7fe0" radius={[0,6,6,0]} label={renderBarLabel} isAnimationActive={false}/>
-          </BarChart>
-        </ResponsiveContainer>
-        {/* פירוט ממוספר */}
-        <div className="bar-legend">
-          {ordersByProduct.map((p, i) => (
-            <div key={i} className="bar-legend-item">
-              <span className="bar-legend-num">{i + 1}</span>
-              <span className="bar-legend-name">{p.name}</span>
-              <span className="bar-legend-val">{fmt(p.הכנסה)}</span>
+      {ordersByProduct.length > 0 && (
+        <>
+          <Card>
+            <SectionHeader title="מכירות לפי מוצר"/>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={ordersByProduct} layout="vertical" margin={{top:0,right:20,left:10,bottom:0}}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false}/>
+                <XAxis type="number" tick={{fontSize:10}} tickLine={false} axisLine={false} tickFormatter={v=>`₪${v}`}/>
+                <YAxis type="category" dataKey="name" tick={false} tickLine={false} width={8}/>
+                <Tooltip formatter={v=>fmt(v)}/>
+                <Bar dataKey="הכנסה" fill="#1e7fe0" radius={[0,6,6,0]} label={renderBarLabel} isAnimationActive={false}/>
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="bar-legend">
+              {ordersByProduct.map((p, i) => (
+                <div key={i} className="bar-legend-item">
+                  <span className="bar-legend-num">{i + 1}</span>
+                  <span className="bar-legend-name">{p.name}</span>
+                  <span className="bar-legend-val">{fmt(p.הכנסה)}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </Card>
+          </Card>
 
-      {/* פירוט טבלה – אסתטי */}
-      <Card padding={false}>
-        <div style={{padding:'16px 20px 0'}}>
-          <SectionHeader title="פירוט לפי מוצר"/>
-        </div>
-        <table className="data-table reports-table">
-          <thead>
-            <tr><th>מוצר</th><th>כמות</th><th>הכנסה</th><th>רווח</th><th>אחוז רווח</th></tr>
-          </thead>
-          <tbody>
-            {ordersByProduct.map((p,i) => (
-              <tr key={i}>
-                <td>
-                  <div style={{display:'flex',alignItems:'center',gap:8}}>
-                    <div style={{width:10,height:10,borderRadius:'50%',background:COLORS[i%COLORS.length],flexShrink:0}}/>
-                    <span className="text-bold">{p.name}</span>
-                  </div>
-                </td>
-                <td>{p.כמות}</td>
-                <td className="text-bold">{fmt(p.הכנסה)}</td>
-                <td style={{color:'var(--success)',fontWeight:600}}>{fmt(p.רווח)}</td>
-                <td>
-                  <span className="pct-badge">{Math.round((p.רווח/p.הכנסה)*100)}%</span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
+          <Card padding={false}>
+            <div style={{padding:'16px 20px 0'}}>
+              <SectionHeader title="פירוט לפי מוצר"/>
+            </div>
+            <table className="data-table reports-table">
+              <thead>
+                <tr><th>מוצר</th><th>כמות</th><th>הכנסה</th><th>רווח</th><th>אחוז רווח</th></tr>
+              </thead>
+              <tbody>
+                {ordersByProduct.map((p,i) => (
+                  <tr key={i}>
+                    <td>
+                      <div style={{display:'flex',alignItems:'center',gap:8}}>
+                        <div style={{width:10,height:10,borderRadius:'50%',background:COLORS[i%COLORS.length],flexShrink:0}}/>
+                        <span className="text-bold">{p.name}</span>
+                      </div>
+                    </td>
+                    <td>{p.כמות}</td>
+                    <td className="text-bold">{fmt(p.הכנסה)}</td>
+                    <td style={{color:'var(--success)',fontWeight:600}}>{fmt(p.רווח)}</td>
+                    <td><span className="pct-badge">{p.הכנסה > 0 ? Math.round((p.רווח/p.הכנסה)*100) : 0}%</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+        </>
+      )}
     </div>
   );
 }

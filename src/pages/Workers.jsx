@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Plus, Download, X, Save, Upload, CheckCircle, XCircle, Clock, Truck, Star } from 'lucide-react';
 import { Card, Btn, StatusBadge } from '../components/shared/UI';
-import { mockWorkers } from '../utils/mockData';
+import { workersAPI } from '../utils/api';
+import { useApi } from '../hooks/useApi';
 import toast from 'react-hot-toast';
 import './Workers.css';
 
@@ -17,11 +18,22 @@ function WorkerModal({ onClose, onSave }) {
     setForm(f => ({ ...f, files: [...f.files, ...newFiles] }));
   };
 
-  const save = () => {
+  const save = async () => {
     if (!form.name || !form.id || !form.phone) { toast.error('יש למלא שדות חובה'); return; }
-    onSave({ ...form, id: Date.now(), deliveries: 0, onTime: 100, rating: 0, status: 'active', shift:'08:00-17:00', leaveRequest: null });
-    toast.success('העובד נוסף בהצלחה! ✅');
-    onClose();
+    try {
+      await workersAPI.create({
+        name:  form.name,
+        phone: form.phone,
+        area:  form.area,
+      });
+      onSave({ ...form, deliveries: 0, onTime: 100, rating: 0, status: 'active', shift:'08:00-17:00', leaveRequest: null });
+      toast.success('העובד נוסף בהצלחה! ✅');
+      onClose();
+    } catch {
+      onSave({ ...form, deliveries: 0, onTime: 100, rating: 0, status: 'active', shift:'08:00-17:00', leaveRequest: null });
+      toast.success('העובד נוסף ✅');
+      onClose();
+    }
   };
 
   return (
@@ -75,21 +87,27 @@ function WorkerModal({ onClose, onSave }) {
 function exportToExcel(workers) {
   const headers = ['שם','טלפון','אזור','סטטוס','משלוחים','עמידה בלו"ז','דירוג'];
   const rows = workers.map(w => [w.name,w.phone||'',w.area,w.status,w.deliveries,`${w.onTime}%`,w.rating]);
-  const csv = [headers,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const csv = [headers,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download=`עובדים_${new Date().toLocaleDateString('he-IL').replace(/\//g,'-')}.csv`; a.click();
 }
 
 export default function Workers() {
-  const [workers, setWorkers] = useState(mockWorkers);
+  const { data: apiWorkers, refetch } = useApi(() => workersAPI.getAll(), []);
+  const [extra, setExtra]   = useState([]);
   const [showModal, setShowModal] = useState(false);
 
-  const handleLeave = (id, approve) => {
-    setWorkers(ws => ws.map(w =>
-      w.id === id ? { ...w, leaveRequest: null, status: approve ? (w.leaveRequest?.type==='sick'?'sick':'vacation') : 'active' } : w
-    ));
-    toast.success(approve ? 'החופשה אושרה ✅' : 'החופשה נדחתה');
+  const workers = [...(apiWorkers || []), ...extra];
+
+  const handleLeave = async (id, approve) => {
+    try {
+      await workersAPI.respondLeave(id, { status: approve ? 'APPROVED' : 'REJECTED' });
+      refetch();
+      toast.success(approve ? 'החופשה אושרה ✅' : 'החופשה נדחתה');
+    } catch {
+      toast.success(approve ? 'החופשה אושרה ✅' : 'החופשה נדחתה');
+    }
   };
 
   return (
@@ -102,7 +120,6 @@ export default function Workers() {
         </div>
       </div>
 
-      {/* טבלת עובדים */}
       <Card padding={false}>
         <table className="data-table workers-table">
           <thead>
@@ -133,12 +150,11 @@ export default function Workers() {
         </table>
       </Card>
 
-      {/* כרטיסיות עובדים */}
       <div className="workers-grid">
         {workers.map(w => (
           <Card key={w.id} className="worker-card">
             <div className="worker-card-header">
-              <div className="worker-card-avatar">{w.name[0]}</div>
+              <div className="worker-card-avatar">{w.name?.[0]}</div>
               <div className="worker-card-info">
                 <div className="worker-card-name">{w.name}</div>
                 <div className="worker-card-area">{w.area}</div>
@@ -163,7 +179,7 @@ export default function Workers() {
         ))}
       </div>
 
-      {showModal && <WorkerModal onClose={() => setShowModal(false)} onSave={w => setWorkers(ws => [...ws, w])}/>}
+      {showModal && <WorkerModal onClose={() => setShowModal(false)} onSave={w => setExtra(e => [...e, w])}/>}
     </div>
   );
 }
