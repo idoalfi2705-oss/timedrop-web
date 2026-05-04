@@ -7,10 +7,16 @@ import toast from 'react-hot-toast';
 import './Workers.css';
 
 const AREAS = ['תל אביב','חיפה','ירושלים','רמת גן','פתח תקווה','ראשון לציון','באר שבע','נתניה'];
-const STATUS_OPTIONS = ['רווק','נשוי','גרוש','אלמן'];
+const GENDERS = ['Male', 'Female', 'Other'];
+const ROLES = ['נהג', 'מחסנאי', 'מנהל משמרת', 'שליח', 'אחר'];
 
 function WorkerModal({ onClose, onSave }) {
-  const [form, setForm] = useState({ name:'', id:'', age:'', status:'רווק', phone:'', area:'תל אביב', prev:'', files:[] });
+  const [form, setForm] = useState({
+    firstName: '', lastName: '', gender: 'Male',
+    dob: '', joining: new Date().toISOString().split('T')[0],
+    phone: '', area: 'תל אביב', role: 'נהג', idNum: '', files: []
+  });
+  const [loading, setLoading] = useState(false);
   const handle = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
   const handleFiles = e => {
@@ -19,39 +25,65 @@ function WorkerModal({ onClose, onSave }) {
   };
 
   const save = async () => {
-    if (!form.name || !form.id || !form.phone) { toast.error('יש למלא שדות חובה'); return; }
+    if (!form.firstName || !form.phone || !form.dob || !form.joining) {
+      toast.error('יש למלא שדות חובה'); return;
+    }
+    setLoading(true);
     try {
       await workersAPI.create({
-        name:  form.name,
-        phone: form.phone,
-        area:  form.area,
+        firstName: form.firstName,
+        lastName:  form.lastName,
+        gender:    form.gender,
+        dob:       form.dob,
+        joining:   form.joining,
+        phone:     form.phone,
+        area:      form.area,
+        role:      form.role,
       });
-      onSave({ ...form, deliveries: 0, onTime: 100, rating: 0, status: 'active', shift:'08:00-17:00', leaveRequest: null });
-      toast.success('העובד נוסף בהצלחה! ✅');
-      onClose();
-    } catch {
-      onSave({ ...form, deliveries: 0, onTime: 100, rating: 0, status: 'active', shift:'08:00-17:00', leaveRequest: null });
-      toast.success('העובד נוסף ✅');
-      onClose();
+      toast.success('העובד נוסף ל-ERPNext! ✅');
+    } catch (e) {
+      toast.error('שגיאה בהוספה ל-ERPNext: ' + e.message);
+    } finally {
+      setLoading(false);
     }
+    onSave({
+      id: Date.now(),
+      name: `${form.firstName} ${form.lastName}`,
+      phone: form.phone,
+      area: form.area,
+      shift: '08:00-17:00',
+      status: 'active',
+      deliveries: 0,
+      onTime: 100,
+      rating: 0,
+      leaveRequest: null,
+    });
+    onClose();
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box animate-fade" onClick={e => e.stopPropagation()}>
-        <div className="modal-header"><h2>עובד חדש</h2><button className="modal-close" onClick={onClose}><X size={18}/></button></div>
+        <div className="modal-header">
+          <h2>עובד חדש</h2>
+          <button className="modal-close" onClick={onClose}><X size={18}/></button>
+        </div>
         <div className="modal-body">
           <div className="form-row">
-            <div className="modal-field"><label>שם מלא *</label><input name="name" value={form.name} onChange={handle} placeholder="ישראל ישראלי"/></div>
-            <div className="modal-field"><label>תעודת זהות *</label><input name="id" value={form.id} onChange={handle} placeholder="000000000"/></div>
+            <div className="modal-field"><label>שם פרטי *</label><input name="firstName" value={form.firstName} onChange={handle} placeholder="ישראל"/></div>
+            <div className="modal-field"><label>שם משפחה</label><input name="lastName" value={form.lastName} onChange={handle} placeholder="ישראלי"/></div>
           </div>
           <div className="form-row">
-            <div className="modal-field"><label>גיל</label><input name="age" type="number" value={form.age} onChange={handle} placeholder="30"/></div>
-            <div className="modal-field"><label>מצב משפחתי</label>
-              <select name="status" value={form.status} onChange={handle}>
-                {STATUS_OPTIONS.map(s => <option key={s}>{s}</option>)}
+            <div className="modal-field"><label>מגדר</label>
+              <select name="gender" value={form.gender} onChange={handle}>
+                {GENDERS.map(g => <option key={g} value={g}>{g === 'Male' ? 'זכר' : g === 'Female' ? 'נקבה' : 'אחר'}</option>)}
               </select>
             </div>
+            <div className="modal-field"><label>תעודת זהות</label><input name="idNum" value={form.idNum} onChange={handle} placeholder="000000000"/></div>
+          </div>
+          <div className="form-row">
+            <div className="modal-field"><label>תאריך לידה *</label><input name="dob" type="date" value={form.dob} onChange={handle}/></div>
+            <div className="modal-field"><label>תאריך תחילת עבודה *</label><input name="joining" type="date" value={form.joining} onChange={handle}/></div>
           </div>
           <div className="form-row">
             <div className="modal-field"><label>טלפון *</label><input name="phone" value={form.phone} onChange={handle} placeholder="05X-XXXXXXX"/></div>
@@ -61,7 +93,11 @@ function WorkerModal({ onClose, onSave }) {
               </select>
             </div>
           </div>
-          <div className="modal-field"><label>עבודה קודמת</label><input name="prev" value={form.prev} onChange={handle} placeholder="שם מעסיק קודם ותפקיד"/></div>
+          <div className="modal-field"><label>תפקיד</label>
+            <select name="role" value={form.role} onChange={handle}>
+              {ROLES.map(r => <option key={r}>{r}</option>)}
+            </select>
+          </div>
           <div className="modal-field">
             <label>העלאת קבצים (קו"ח, תעודות...)</label>
             <label className="file-upload-btn">
@@ -77,7 +113,9 @@ function WorkerModal({ onClose, onSave }) {
         </div>
         <div className="modal-footer">
           <Btn variant="secondary" size="sm" onClick={onClose}>ביטול</Btn>
-          <Btn variant="primary" size="sm" icon={<Save size={14}/>} onClick={save}>הוסף עובד</Btn>
+          <Btn variant="primary" size="sm" icon={<Save size={14}/>} onClick={save} disabled={loading}>
+            {loading ? 'שומר...' : 'הוסף עובד'}
+          </Btn>
         </div>
       </div>
     </div>
@@ -95,7 +133,7 @@ function exportToExcel(workers) {
 
 export default function Workers() {
   const { data: apiWorkers, refetch } = useApi(() => workersAPI.getAll(), []);
-  const [extra, setExtra]   = useState([]);
+  const [extra, setExtra]       = useState([]);
   const [showModal, setShowModal] = useState(false);
 
   const workers = [...(apiWorkers || []), ...extra];
@@ -134,7 +172,7 @@ export default function Workers() {
                 <td className="text-muted">{w.shift}</td>
                 <td>{w.deliveries}</td>
                 <td><span className="pct-badge">{w.onTime}%</span></td>
-                <td>{'★'.repeat(Math.round(w.rating))}{'☆'.repeat(5-Math.round(w.rating))}</td>
+                <td>{'★'.repeat(Math.round(w.rating || 0))}{'☆'.repeat(5-Math.round(w.rating || 0))}</td>
                 <td><StatusBadge status={w.status}/></td>
                 <td>
                   {w.leaveRequest ? (

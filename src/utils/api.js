@@ -249,9 +249,15 @@ export const workersAPI = {
 
   create: async (worker) => {
     const data = await fPost('/api/resource/Employee', {
-      employee_name: worker.name,
+      first_name:    worker.firstName,
+      last_name:     worker.lastName || '',
+      gender:        worker.gender || 'Male',
+      date_of_birth: worker.dob,
+      date_of_joining: worker.joining,
       cell_number:   worker.phone,
       branch:        worker.area,
+      designation:   worker.role || '',
+      company:       'TimeDrop',
       status:        'Active',
     });
     return data.data;
