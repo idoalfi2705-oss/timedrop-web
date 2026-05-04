@@ -61,3 +61,23 @@
 .file-upload-btn:hover { background: var(--blue-100); }
 .uploaded-files { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .file-chip { background: var(--gray-100); color: var(--gray-600); padding: 3px 10px; border-radius: 99px; font-size: 0.78rem; }
+
+/* ── תיקון גובה מודל ─────────────────────────────── */
+.modal-box {
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+.modal-body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 20px 24px;
+}
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
