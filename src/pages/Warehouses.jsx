@@ -3,7 +3,6 @@ import { Package, AlertTriangle, MapPin, Plus, X } from 'lucide-react';
 import { Card, Btn, SectionHeader, StatusBadge } from '../components/shared/UI';
 import { warehousesAPI } from '../utils/api';
 import { useApi } from '../hooks/useApi';
-import { mockWarehouses, mockWarehouseItems } from '../utils/mockData';
 import './Warehouses.css';
 
 function AddWarehouseModal({ onClose, onAdd }) {
@@ -36,18 +35,18 @@ function AddWarehouseModal({ onClose, onAdd }) {
 }
 
 export default function Warehouses() {
-  const { data: apiWarehouses } = useApi(() => warehousesAPI.getAll().catch(() => mockWarehouses), []);
+  const { data: apiWarehouses } = useApi(() => warehousesAPI.getAll(), []);
   const [extra, setExtra]       = useState([]);
   const [selected, setSelected] = useState(null);
   const [showAdd, setShowAdd]   = useState(false);
 
-  const warehouses = [...(apiWarehouses || mockWarehouses), ...extra];
+  const warehouses = [...(apiWarehouses || []), ...extra];
 
   const { data: stock } = useApi(
-    () => selected ? warehousesAPI.getStock(selected.id).catch(() => mockWarehouseItems.filter(i=>i.warehouseId===selected.id)) : Promise.resolve([]),
+    () => selected ? warehousesAPI.getStock(selected.id) : Promise.resolve([]),
     [selected?.id]
   );
-  const items    = stock || (selected ? mockWarehouseItems.filter(i=>i.warehouseId===selected.id) : []);
+  const items    = stock || [];
   const lowStock = items.filter(i => i.qty < i.min || i.isLow);
 
   return (

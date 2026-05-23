@@ -302,16 +302,26 @@ export const deliveriesAPI = {
   getToday: async () => {
     const today = new Date().toISOString().split('T')[0];
     const data = await fGet('/api/resource/Delivery Note', {
-      fields:  JSON.stringify(['name','customer_name','posting_date','status','grand_total']),
+      fields:  JSON.stringify(['name','customer_name','customer_address','posting_date','status','grand_total']),
       filters: JSON.stringify([['posting_date', '=', today]]),
       limit:   50,
     });
     return (data.data || []).map(d => ({
       id:         d.name,
       clientName: d.customer_name,
+      address:    d.customer_address || '',
       date:       d.posting_date,
       status:     d.status === 'Submitted' ? 'delivered' : 'pending',
       total:      d.grand_total,
+    }));
+  },
+
+  getItems: async (id) => {
+    const data = await fGet(`/api/resource/Delivery Note/${encodeURIComponent(id)}`);
+    return (data.data?.items || []).map(i => ({
+      name:  i.item_name,
+      qty:   i.qty,
+      price: i.rate,
     }));
   },
 

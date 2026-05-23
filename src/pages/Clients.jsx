@@ -3,7 +3,6 @@ import { Search, Phone, MapPin, FileText, Plus, X, Save } from 'lucide-react';
 import { Card, Btn, StatusBadge, SectionHeader } from '../components/shared/UI';
 import { clientsAPI, ordersAPI } from '../utils/api';
 import { useApi } from '../hooks/useApi';
-import { mockClients, mockOrders } from '../utils/mockData';
 import toast from 'react-hot-toast';
 import './Clients.css';
 
@@ -58,13 +57,13 @@ export default function Clients() {
   const [showModal, setShowModal] = useState(false);
   const [extra,     setExtra]     = useState([]);
 
-  const { data: apiClients } = useApi(() => clientsAPI.getAll().catch(() => mockClients), []);
+  const { data: apiClients } = useApi(() => clientsAPI.getAll(), []);
   const { data: clientOrders } = useApi(
-    () => selected ? ordersAPI.getAll({ clientId: selected.id }).catch(() => mockOrders.filter(o=>o.clientId===selected.id)) : Promise.resolve([]),
+    () => selected ? ordersAPI.getAll({ clientId: selected.id }) : Promise.resolve([]),
     [selected?.id]
   );
 
-  const clients = [...(apiClients || mockClients), ...extra];
+  const clients = [...(apiClients || []), ...extra];
   const list = clients.filter(c => c.name?.includes(search) || c.contact?.includes(search) || c.area?.includes(search) || c.bizName?.includes(search));
 
   return (

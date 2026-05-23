@@ -3,7 +3,6 @@ import { Search, Download } from 'lucide-react';
 import { Card, StatusBadge } from '../components/shared/UI';
 import { ordersAPI } from '../utils/api';
 import { useApi } from '../hooks/useApi';
-import { mockOrders } from '../utils/mockData';
 import './Orders.css';
 
 const fmt = n => '₪' + n.toLocaleString('he-IL');
@@ -42,11 +41,11 @@ export default function Orders() {
   const [toDate,   setToDate]   = useState('');
 
   const { data: orders, loading } = useApi(
-    () => ordersAPI.getAll({ fromDate, toDate }).catch(() => mockOrders),
+    () => ordersAPI.getAll({ fromDate, toDate }),
     [fromDate, toDate]
   );
 
-  const list = (orders || mockOrders).filter(o => {
+  const list = (orders || []).filter(o => {
     const matchSearch = o.clientName?.includes(search) || String(o.id).includes(search);
     const matchStatus = status === 'all' || o.status === status;
     return matchSearch && matchStatus;

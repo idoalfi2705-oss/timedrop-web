@@ -1,35 +1,44 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
-  CheckCircle, Circle, MapPin, Phone, Package,
-  Clock, Navigation, AlertTriangle, ChevronDown, ChevronUp, Truck
+  CheckCircle, Circle, MapPin, Phone,
+  Clock, Navigation, AlertTriangle, ChevronDown, ChevronUp, Package
 } from 'lucide-react';
-import { Card, Btn, StatusBadge } from '../components/shared/UI';
-import { mockWorkerDay } from '../utils/workerMockData';
+import { Card, Btn } from '../components/shared/UI';
+import { deliveriesAPI } from '../utils/api';
+import { useApi } from '../hooks/useApi';
+import { useAuth } from '../context/AuthContext';
 import './WorkerSchedule.css';
 
 export default function WorkerSchedule() {
-  const [tasks, setTasks] = useState(mockWorkerDay.tasks);
+  const { user } = useAuth();
   const [expanded, setExpanded] = useState(null);
-  const [collected, setCollected] = useState({});
+  const [doneMap, setDoneMap]   = useState({});
 
-  const toggleComplete = (id) => {
-    setTasks(ts => ts.map(t => t.id === id ? { ...t, done: !t.done } : t));
-  };
+  const { data: deliveries, loading } = useApi(() => deliveriesAPI.getToday(), []);
 
-  const toggleCollect = (itemKey) => {
-    setCollected(c => ({ ...c, [itemKey]: !c[itemKey] }));
-  };
+  const tasks = (deliveries || []).map(d => ({
+    id:         d.id,
+    clientName: d.clientName,
+    address:    d.address || '',
+    phone:      d.phone   || '',
+    eta:        '',
+    isStorage:  false,
+    done:       doneMap[d.id] ?? d.status === 'delivered',
+    items:      d.items || [],
+    total:      d.total || 0,
+  }));
 
-  const done = tasks.filter(t => t.done).length;
-  const progress = Math.round((done / tasks.length) * 100);
+  const toggleDone = (id) => setDoneMap(m => ({ ...m, [id]: !tasks.find(t => t.id === id)?.done }));
+
+  const done     = tasks.filter(t => t.done).length;
+  const progress = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
 
   return (
     <div className="worker-schedule animate-fade">
-      {/* Header */}
       <div className="ws-header">
         <div>
           <h1>לו"ז יום – {new Date().toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' })}</h1>
-          <p>שלום {mockWorkerDay.workerName}! יש לך {tasks.length} משימות היום</p>
+          <p>שלום {user?.name}! יש לך {tasks.length} משימות היום</p>
         </div>
         <div className="ws-progress-wrap">
           <div className="ws-progress-ring">
@@ -50,110 +59,67 @@ export default function WorkerSchedule() {
         </div>
       </div>
 
-      {/* Break time banner */}
-      <div className="ws-break-banner">
-        <Clock size={16}/>
-        <span>הפסקה: <strong>{mockWorkerDay.breakTime}</strong></span>
-        <span className="ws-break-divider">|</span>
-        <span>סיום משמרת: <strong>{mockWorkerDay.endTime}</strong></span>
-      </div>
-
-      {/* Pickup from warehouses */}
-      <Card>
-        <div className="ws-section-title">
-          <Package size={18}/>
-          איסוף ממחסנים
+      {loading && (
+        <div className="ws-tasks">
+          {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 68, borderRadius: 12, marginBottom: 10 }}/>)}
         </div>
-        {mockWorkerDay.pickups.map((pickup, pi) => (
-          <div key={pi} className="ws-pickup">
-            <div className="ws-pickup-header">
-              <div className="ws-pickup-warehouse">
-                <MapPin size={14}/>
-                <strong>{pickup.warehouse}</strong>
-                <span className="ws-pickup-addr">{pickup.address}</span>
-              </div>
-            </div>
-            <div className="ws-pickup-items">
-              {pickup.items.map((item, ii) => {
-                const key = `${pi}-${ii}`;
-                const done = collected[key];
-                return (
-                  <div key={ii} className={`ws-pickup-item ${done ? 'collected' : ''}`}>
-                    <button className="ws-check-btn" onClick={() => toggleCollect(key)}>
-                      {done ? <CheckCircle size={18} color="var(--success)"/> : <Circle size={18} color="var(--gray-300)"/>}
-                    </button>
-                    <span className="ws-item-name">{item.name}</span>
-                    <span className="ws-item-qty">{item.qty} {item.unit}</span>
-                    <span className="ws-item-loc">{item.location}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </Card>
+      )}
 
-      {/* Delivery tasks */}
+      {!loading && tasks.length === 0 && (
+        <Card><p style={{ textAlign: 'center', color: 'var(--gray-400)', padding: '32px 0' }}>אין משלוחים להיום</p></Card>
+      )}
+
       <div className="ws-tasks">
         {tasks.map((task, idx) => (
-          <div key={task.id} className={`ws-task-card ${task.done ? 'done' : ''} ${task.isStorage ? 'storage' : ''}`}>
+          <div key={task.id} className={`ws-task-card ${task.done ? 'done' : ''}`}>
             <div className="ws-task-header" onClick={() => setExpanded(expanded === task.id ? null : task.id)}>
               <div className="ws-task-num">{idx + 1}</div>
               <div className="ws-task-info">
-                <div className="ws-task-name">
-                  {task.isStorage
-                    ? <span className="ws-storage-badge"><Package size={12}/> אחסון למחסן</span>
-                    : task.clientName
-                  }
-                </div>
-                <div className="ws-task-addr">
-                  <MapPin size={12}/> {task.address}
-                </div>
+                <div className="ws-task-name">{task.clientName}</div>
+                {task.address && (
+                  <div className="ws-task-addr"><MapPin size={12}/> {task.address}</div>
+                )}
               </div>
               <div className="ws-task-side">
-                <span className="ws-task-time">{task.eta}</span>
+                {task.eta && <span className="ws-task-time">{task.eta}</span>}
                 {expanded === task.id ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
               </div>
             </div>
 
             {expanded === task.id && (
               <div className="ws-task-detail animate-fade">
-                {!task.isStorage && (
-                  <div className="ws-task-actions">
+                <div className="ws-task-actions">
+                  {task.phone && (
                     <a href={`tel:${task.phone}`} className="ws-action-btn ws-call">
                       <Phone size={15}/> {task.phone}
                     </a>
+                  )}
+                  {task.address && (
                     <button className="ws-action-btn ws-nav" onClick={() => window.open(`https://waze.com/ul?q=${encodeURIComponent(task.address)}`)}>
                       <Navigation size={15}/> נווט
                     </button>
+                  )}
+                </div>
+
+                {task.items.length > 0 ? (
+                  <div className="ws-task-items">
+                    <div className="ws-task-items-title">פריטים:</div>
+                    {task.items.map((item, i) => (
+                      <div key={i} className="ws-task-item-row">
+                        <span>{item.name}</span>
+                        <span className="ws-task-item-qty">×{item.qty}</span>
+                        {item.price > 0 && <span className="ws-task-item-price">₪{item.price}</span>}
+                      </div>
+                    ))}
                   </div>
-                )}
-
-                <div className="ws-task-items">
-                  <div className="ws-task-items-title">פריטים:</div>
-                  {task.items.map((item, i) => (
-                    <div key={i} className="ws-task-item-row">
-                      <span>{item.name}</span>
-                      <span className="ws-task-item-qty">×{item.qty}</span>
-                      <span className="ws-task-item-price">₪{item.price}</span>
-                      <button
-                        className="ws-refuse-btn"
-                        onClick={() => alert(`סירוב על ${item.name} – החשבונית תעודכן`)}
-                      >
-                        חסר
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="ws-task-total">
-                  סה"כ: <strong>₪{task.items.reduce((s, i) => s + i.price * i.qty, 0)}</strong>
-                </div>
+                ) : task.total > 0 ? (
+                  <div className="ws-task-total">סה"כ: <strong>₪{task.total}</strong></div>
+                ) : null}
 
                 <div className="ws-task-footer">
                   <button
                     className={`ws-complete-btn ${task.done ? 'done' : ''}`}
-                    onClick={() => toggleComplete(task.id)}
+                    onClick={() => toggleDone(task.id)}
                   >
                     {task.done
                       ? <><CheckCircle size={16}/> הושלם</>
@@ -167,15 +133,11 @@ export default function WorkerSchedule() {
         ))}
       </div>
 
-      {/* Report disturbance */}
       <Card className="ws-report-card">
-        <div className="ws-report-title">
-          <AlertTriangle size={16}/> דיווח שיבוש
-        </div>
+        <div className="ws-report-title"><AlertTriangle size={16}/> דיווח שיבוש</div>
         <textarea className="ws-report-input" placeholder="תאר את השיבוש (פקק, תקלה, אירוע...)"/>
         <Btn variant="secondary" size="sm">שלח למעסיק</Btn>
       </Card>
     </div>
   );
 }
-
