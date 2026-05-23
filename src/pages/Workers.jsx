@@ -1,126 +1,11 @@
 import React, { useState } from 'react';
-import { Plus, Download, X, Save, Upload, CheckCircle, XCircle, Clock, Truck, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Download, CheckCircle, XCircle, Clock, Truck, Star } from 'lucide-react';
 import { Card, Btn, StatusBadge } from '../components/shared/UI';
 import { workersAPI } from '../utils/api';
 import { useApi } from '../hooks/useApi';
 import toast from 'react-hot-toast';
 import './Workers.css';
-
-const AREAS = ['תל אביב','חיפה','ירושלים','רמת גן','פתח תקווה','ראשון לציון','באר שבע','נתניה'];
-const GENDERS = ['Male', 'Female', 'Other'];
-const ROLES = ['נהג', 'מחסנאי', 'מנהל משמרת', 'שליח', 'אחר'];
-
-function WorkerModal({ onClose, onSave }) {
-  const [form, setForm] = useState({
-    firstName: '', lastName: '', gender: 'Male',
-    dob: '', joining: new Date().toISOString().split('T')[0],
-    phone: '', area: 'תל אביב', role: 'נהג', idNum: '', files: []
-  });
-  const [loading, setLoading] = useState(false);
-  const handle = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
-
-  const handleFiles = e => {
-    const newFiles = Array.from(e.target.files).map(f => f.name);
-    setForm(f => ({ ...f, files: [...f.files, ...newFiles] }));
-  };
-
-  const save = async () => {
-    if (!form.firstName || !form.phone || !form.dob || !form.joining) {
-      toast.error('יש למלא שדות חובה'); return;
-    }
-    setLoading(true);
-    try {
-      await workersAPI.create({
-        firstName: form.firstName,
-        lastName:  form.lastName,
-        gender:    form.gender,
-        dob:       form.dob,
-        joining:   form.joining,
-        phone:     form.phone,
-        area:      form.area,
-        role:      form.role,
-      });
-      toast.success('העובד נוסף ל-ERPNext! ✅');
-    } catch (e) {
-      toast.error('שגיאה בהוספה ל-ERPNext: ' + e.message);
-    } finally {
-      setLoading(false);
-    }
-    onSave({
-      id: Date.now(),
-      name: `${form.firstName} ${form.lastName}`,
-      phone: form.phone,
-      area: form.area,
-      shift: '08:00-17:00',
-      status: 'active',
-      deliveries: 0,
-      onTime: 100,
-      rating: 0,
-      leaveRequest: null,
-    });
-    onClose();
-  };
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box animate-fade" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>עובד חדש</h2>
-          <button className="modal-close" onClick={onClose}><X size={18}/></button>
-        </div>
-        <div className="modal-body">
-          <div className="form-row">
-            <div className="modal-field"><label>שם פרטי *</label><input name="firstName" value={form.firstName} onChange={handle} placeholder="ישראל"/></div>
-            <div className="modal-field"><label>שם משפחה</label><input name="lastName" value={form.lastName} onChange={handle} placeholder="ישראלי"/></div>
-          </div>
-          <div className="form-row">
-            <div className="modal-field"><label>מגדר</label>
-              <select name="gender" value={form.gender} onChange={handle}>
-                {GENDERS.map(g => <option key={g} value={g}>{g === 'Male' ? 'זכר' : g === 'Female' ? 'נקבה' : 'אחר'}</option>)}
-              </select>
-            </div>
-            <div className="modal-field"><label>תעודת זהות</label><input name="idNum" value={form.idNum} onChange={handle} placeholder="000000000"/></div>
-          </div>
-          <div className="form-row">
-            <div className="modal-field"><label>תאריך לידה *</label><input name="dob" type="date" value={form.dob} onChange={handle}/></div>
-            <div className="modal-field"><label>תאריך תחילת עבודה *</label><input name="joining" type="date" value={form.joining} onChange={handle}/></div>
-          </div>
-          <div className="form-row">
-            <div className="modal-field"><label>טלפון *</label><input name="phone" value={form.phone} onChange={handle} placeholder="05X-XXXXXXX"/></div>
-            <div className="modal-field"><label>אזור עבודה</label>
-              <select name="area" value={form.area} onChange={handle}>
-                {AREAS.map(a => <option key={a}>{a}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="modal-field"><label>תפקיד</label>
-            <select name="role" value={form.role} onChange={handle}>
-              {ROLES.map(r => <option key={r}>{r}</option>)}
-            </select>
-          </div>
-          <div className="modal-field">
-            <label>העלאת קבצים (קו"ח, תעודות...)</label>
-            <label className="file-upload-btn">
-              <Upload size={15}/> בחר קבצים
-              <input type="file" multiple style={{display:'none'}} onChange={handleFiles}/>
-            </label>
-            {form.files.length > 0 && (
-              <div className="uploaded-files">
-                {form.files.map((f,i) => <span key={i} className="file-chip">📄 {f}</span>)}
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="modal-footer">
-          <Btn variant="secondary" size="sm" onClick={onClose}>ביטול</Btn>
-          <Btn variant="primary" size="sm" icon={<Save size={14}/>} onClick={save} disabled={loading}>
-            {loading ? 'שומר...' : 'הוסף עובד'}
-          </Btn>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function exportToExcel(workers) {
   const headers = ['שם','טלפון','אזור','סטטוס','משלוחים','עמידה בלו"ז','דירוג'];
@@ -132,9 +17,9 @@ function exportToExcel(workers) {
 }
 
 export default function Workers() {
+  const navigate = useNavigate();
   const { data: apiWorkers, refetch } = useApi(() => workersAPI.getAll(), []);
-  const [extra, setExtra]       = useState([]);
-  const [showModal, setShowModal] = useState(false);
+  const [extra] = useState([]);
 
   const workers = [...(apiWorkers || []), ...extra];
 
@@ -154,7 +39,7 @@ export default function Workers() {
         <div className="page-header-title"><h1>עובדים</h1><p>{workers.length} עובדים רשומים</p></div>
         <div className="page-header-actions">
           <Btn variant="secondary" icon={<Download size={15}/>} size="sm" onClick={() => exportToExcel(workers)}>ייצוא אקסל</Btn>
-          <Btn variant="primary"   icon={<Plus size={15}/>}     size="sm" onClick={() => setShowModal(true)}>עובד חדש</Btn>
+          <Btn variant="primary"   icon={<Plus size={15}/>}     size="sm" onClick={() => navigate('/dashboard/workers/new')}>עובד חדש</Btn>
         </div>
       </div>
 
@@ -217,7 +102,6 @@ export default function Workers() {
         ))}
       </div>
 
-      {showModal && <WorkerModal onClose={() => setShowModal(false)} onSave={w => setExtra(e => [...e, w])}/>}
     </div>
   );
 }

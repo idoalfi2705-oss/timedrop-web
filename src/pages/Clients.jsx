@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Search, Phone, MapPin, FileText, Plus, X, Save } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Phone, MapPin, FileText, Plus } from 'lucide-react';
 import { Card, Btn, StatusBadge, SectionHeader } from '../components/shared/UI';
 import { clientsAPI, ordersAPI } from '../utils/api';
 import { useApi } from '../hooks/useApi';
@@ -8,54 +9,11 @@ import './Clients.css';
 
 const fmt = n => '₪' + n.toLocaleString('he-IL');
 
-const CATEGORIES = ['מסעדה','קפה','מאפייה','סופרמרקט','מלון','קייטרינג','מוסד חינוכי','אחר'];
-
-function NewClientModal({ onClose, onSave }) {
-  const [form, setForm] = useState({ bizNum:'', name:'', bizName:'', phone:'', address:'', category:'מסעדה' });
-  const handle = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
-
-  const save = () => {
-    if (!form.name || !form.phone || !form.bizNum) { toast.error('יש למלא שדות חובה'); return; }
-    onSave({ ...form, id: Date.now(), debt: 0, rating: 0, totalOrders: 0, lastOrder: new Date(), area: form.address.split(',').pop()?.trim() || 'כללי' });
-    toast.success('הלקוח נשמר בהצלחה! ✅');
-    onClose();
-  };
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box animate-fade" onClick={e => e.stopPropagation()}>
-        <div className="modal-header"><h2>לקוח חדש</h2><button className="modal-close" onClick={onClose}><X size={18}/></button></div>
-        <div className="modal-body">
-          <div className="form-row">
-            <div className="modal-field"><label>ח.פ / ע.מ *</label><input name="bizNum" value={form.bizNum} onChange={handle} placeholder="000000000"/></div>
-            <div className="modal-field"><label>שם מלא *</label><input name="name" value={form.name} onChange={handle} placeholder="ישראל ישראלי"/></div>
-          </div>
-          <div className="form-row">
-            <div className="modal-field"><label>שם עסק</label><input name="bizName" value={form.bizName} onChange={handle} placeholder="מסעדת הגליל"/></div>
-            <div className="modal-field"><label>טלפון *</label><input name="phone" value={form.phone} onChange={handle} placeholder="05X-XXXXXXX"/></div>
-          </div>
-          <div className="modal-field"><label>כתובת</label><input name="address" value={form.address} onChange={handle} placeholder="רחוב הרצל 1, תל אביב"/></div>
-          <div className="modal-field">
-            <label>קטגוריה</label>
-            <select name="category" value={form.category} onChange={handle}>
-              {CATEGORIES.map(c => <option key={c}>{c}</option>)}
-            </select>
-          </div>
-        </div>
-        <div className="modal-footer">
-          <Btn variant="secondary" size="sm" onClick={onClose}>ביטול</Btn>
-          <Btn variant="primary" size="sm" icon={<Save size={14}/>} onClick={save}>שמור לקוח</Btn>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function Clients() {
-  const [search,    setSearch]    = useState('');
-  const [selected,  setSelected]  = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [extra,     setExtra]     = useState([]);
+  const navigate = useNavigate();
+  const [search,   setSearch]   = useState('');
+  const [selected, setSelected] = useState(null);
+  const [extra]                 = useState([]);
 
   const { data: apiClients } = useApi(() => clientsAPI.getAll(), []);
   const { data: clientOrders } = useApi(
@@ -70,7 +28,7 @@ export default function Clients() {
     <div className="clients-page animate-fade">
       <div className="page-header">
         <div className="page-header-title"><h1>לקוחות</h1><p>{list.length} לקוחות</p></div>
-        <Btn variant="primary" icon={<Plus size={16}/>} onClick={() => setShowModal(true)}>לקוח חדש</Btn>
+        <Btn variant="primary" icon={<Plus size={16}/>} onClick={() => navigate('/dashboard/clients/new')}>לקוח חדש</Btn>
       </div>
 
       <div className="clients-layout">
@@ -145,7 +103,6 @@ export default function Clients() {
         )}
       </div>
 
-      {showModal && <NewClientModal onClose={() => setShowModal(false)} onSave={c => setExtra(e => [...e, c])}/>}
     </div>
   );
 }

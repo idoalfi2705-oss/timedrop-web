@@ -22,6 +22,9 @@ import ClientSettings from './pages/ClientSettings';
 import Settings from './pages/Settings';
 import WorkerSettings from './pages/WorkerSettings';
 import Items from './pages/Items';
+import NewWorkerPage from './pages/NewWorkerPage';
+import NewItemPage from './pages/NewItemPage';
+import NewClientPage from './pages/NewClientPage';
 
 function PrivateRoute({ children, role }) {
   const { user, loading } = useAuth();
@@ -61,9 +64,12 @@ function App() {
             <Route path="items"      element={<Items />} />
             <Route path="warehouses" element={<Warehouses />} />
             <Route path="orders"     element={<Orders />} />
-            <Route path="workers"    element={<Workers />} />
-            <Route path="reports"    element={<Reports />} />
-            <Route path="settings"   element={<Settings />} />
+            <Route path="workers"      element={<Workers />} />
+            <Route path="workers/new"  element={<NewWorkerPage />} />
+            <Route path="items/new"    element={<NewItemPage />} />
+            <Route path="clients/new"  element={<NewClientPage />} />
+            <Route path="reports"      element={<Reports />} />
+            <Route path="settings"     element={<Settings />} />
           </Route>
 
           {/* Worker */}
