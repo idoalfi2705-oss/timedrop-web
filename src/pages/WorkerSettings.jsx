@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Card, Btn } from '../../components/shared/UI';
+﻿import React, { useState } from 'react';
+import { Card, Btn } from '../components/shared/UI';
 import { Bell, MapPin, Clock, Shield, Save, CheckCircle } from 'lucide-react';
 import './WorkerSettings.css';
 
@@ -87,3 +87,4 @@ export default function WorkerSettings() {
     </div>
   );
 }
+

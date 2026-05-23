@@ -11,16 +11,16 @@ import Warehouses from './pages/Warehouses';
 import Orders from './pages/Orders';
 import Workers from './pages/Workers';
 import Reports from './pages/Reports';
-import WorkerSchedule from './pages/worker/WorkerSchedule';
-import WorkerInvoice from './pages/worker/WorkerInvoice';
-import WorkerLeave from './pages/worker/WorkerLeave';
+import WorkerSchedule from './pages/WorkerSchedule';
+import WorkerInvoice from './pages/WorkerInvoice';
+import WorkerLeave from './pages/WorkerLeave';
 import ClientLayout from './components/layout/ClientLayout';
-import ClientHome from './pages/client/ClientHome';
-import ClientOrders from './pages/client/ClientOrders';
-import ClientNewOrder from './pages/client/ClientNewOrder';
-import ClientSettings from './pages/client/ClientSettings';
+import ClientHome from './pages/ClientHome';
+import ClientOrders from './pages/ClientOrders';
+import ClientNewOrder from './pages/ClientNewOrder';
+import ClientSettings from './pages/ClientSettings';
 import Settings from './pages/Settings';
-import WorkerSettings from './pages/worker/WorkerSettings';
+import WorkerSettings from './pages/WorkerSettings';
 import Items from './pages/Items';
 
 function PrivateRoute({ children, role }) {

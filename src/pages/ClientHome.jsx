@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Truck, Clock, CreditCard, Star, Phone, MapPin, CheckCircle, Package } from 'lucide-react';
-import { Card, Btn } from '../../components/shared/UI';
-import { mockClientPortal, mockClientOrders } from '../../utils/clientMockData';
+import { Card, Btn } from '../components/shared/UI';
+import { mockClientPortal, mockClientOrders } from '../utils/clientMockData';
 import { useNavigate } from 'react-router-dom';
 import './ClientHome.css';
 
@@ -187,3 +187,4 @@ export default function ClientHome() {
     </div>
   );
 }
+

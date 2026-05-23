@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   CheckCircle, Circle, MapPin, Phone, Package,
   Clock, Navigation, AlertTriangle, ChevronDown, ChevronUp, Truck
 } from 'lucide-react';
-import { Card, Btn, StatusBadge } from '../../components/shared/UI';
-import { mockWorkerDay } from '../../utils/workerMockData';
+import { Card, Btn, StatusBadge } from '../components/shared/UI';
+import { mockWorkerDay } from '../utils/workerMockData';
 import './WorkerSchedule.css';
 
 export default function WorkerSchedule() {
@@ -178,3 +178,4 @@ export default function WorkerSchedule() {
     </div>
   );
 }
+

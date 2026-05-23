@@ -7,7 +7,8 @@ import {
 } from 'lucide-react';
 import Notifications from '../shared/Notifications';
 import ProfileEditor from '../shared/ProfileEditor';
-import './WorkerLayout.css';
+import Chat from '../shared/Chat';
+import './layouts.css';
 
 const NAV = [
   { to: '/worker',           icon: CalendarDays, label: 'לו"ז יומי',       end: true },
@@ -95,6 +96,7 @@ export default function WorkerLayout() {
       </main>
 
       {showProfile && <ProfileEditor onClose={() => setShowProfile(false)} />}
+      <Chat />
     </div>
   );
 }

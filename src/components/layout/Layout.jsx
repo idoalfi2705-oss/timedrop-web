@@ -4,8 +4,9 @@ import { useAuth } from '../../context/AuthContext';
 import Sidebar from './Sidebar';
 import Notifications from '../shared/Notifications';
 import ProfileEditor from '../shared/ProfileEditor';
+import Chat from '../shared/Chat';
 import { Search } from 'lucide-react';
-import './Layout.css';
+import './layouts.css';
 
 export default function Layout() {
   const [collapsed, setCollapsed] = useState(false);
@@ -40,6 +41,7 @@ export default function Layout() {
       </div>
 
       {showProfile && <ProfileEditor onClose={() => setShowProfile(false)} />}
+      <Chat />
     </div>
   );
 }

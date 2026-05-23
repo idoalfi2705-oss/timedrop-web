@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Card, Btn } from '../../components/shared/UI';
+﻿import React, { useState } from 'react';
+import { Card, Btn } from '../components/shared/UI';
 import { Bell, Shield, Save, CheckCircle } from 'lucide-react';
 import './ClientSettings.css';
 
@@ -75,3 +75,4 @@ export default function ClientSettings() {
     </div>
   );
 }
+

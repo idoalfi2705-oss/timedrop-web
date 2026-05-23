@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Plus, Minus, ShoppingCart, CheckCircle, Trash2 } from 'lucide-react';
-import { Card, Btn } from '../../components/shared/UI';
+import { Card, Btn } from '../components/shared/UI';
 import './ClientNewOrder.css';
 
 const CATALOG = [
@@ -155,3 +155,4 @@ export default function ClientNewOrder() {
     </div>
   );
 }
+

@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { FileText, Check, X, RotateCcw } from 'lucide-react';
-import { Card, Btn } from '../../components/shared/UI';
-import { mockWorkerDay } from '../../utils/workerMockData';
+import { Card, Btn } from '../components/shared/UI';
+import { mockWorkerDay } from '../utils/workerMockData';
 import './WorkerInvoice.css';
 
 export default function WorkerInvoice() {
@@ -179,3 +179,4 @@ export default function WorkerInvoice() {
     </div>
   );
 }
+

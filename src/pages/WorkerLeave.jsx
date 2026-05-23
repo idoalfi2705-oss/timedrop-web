@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Calendar, Clock, CheckCircle, XCircle, Plus } from 'lucide-react';
-import { Card, Btn } from '../../components/shared/UI';
+import { Card, Btn } from '../components/shared/UI';
 import './WorkerLeave.css';
 
 const AREAS = ['תל אביב', 'חיפה', 'ירושלים', 'רמת גן', 'פתח תקווה', 'ראשון לציון'];
@@ -133,3 +133,4 @@ export default function WorkerLeave() {
     </div>
   );
 }
+

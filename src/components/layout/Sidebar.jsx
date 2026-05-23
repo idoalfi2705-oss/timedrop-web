@@ -6,7 +6,7 @@ import {
   Truck, BarChart2, Settings, LogOut,
   Truck as TruckIcon, Clock, ChevronRight, Bell, ShoppingBag
 } from 'lucide-react';
-import './Sidebar.css';
+import './layouts.css';
 
 const NAV_ITEMS = [
   { to: '/dashboard',           icon: LayoutDashboard, label: 'דשבורד' },

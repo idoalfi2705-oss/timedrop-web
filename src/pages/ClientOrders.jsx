@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { FileText, Star, Download, ChevronDown, ChevronUp, CheckCircle, Clock } from 'lucide-react';
-import { Card, Btn } from '../../components/shared/UI';
-import { mockClientOrders } from '../../utils/clientMockData';
+import { Card, Btn } from '../components/shared/UI';
+import { mockClientOrders } from '../utils/clientMockData';
 import './ClientOrders.css';
 
 const fmt = n => '₪' + n.toLocaleString('he-IL');
@@ -130,3 +130,4 @@ export default function ClientOrders() {
     </div>
   );
 }
+

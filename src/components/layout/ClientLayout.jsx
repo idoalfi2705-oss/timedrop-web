@@ -3,7 +3,8 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { LayoutDashboard, FileText, ShoppingCart, LogOut, Truck, Clock, Settings } from 'lucide-react';
 import ProfileEditor from '../shared/ProfileEditor';
-import './ClientLayout.css';
+import Chat from '../shared/Chat';
+import './layouts.css';
 
 const NAV = [
   { to: '/client',           icon: LayoutDashboard, label: 'ראשי',       end: true },
@@ -48,6 +49,7 @@ export default function ClientLayout() {
         </div>
       </main>
       {showProfile && <ProfileEditor onClose={() => setShowProfile(false)} />}
+      <Chat />
     </div>
   );
 }
