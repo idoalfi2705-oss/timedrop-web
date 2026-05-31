@@ -138,6 +138,33 @@ ${nd ? `משלוח הבא: ${nd.date} ${nd.time}` : ''}
   return base;
 }
 
+// Keywords that are answered from the internal DB — no web search needed
+const DB_KEYWORDS = [
+  'משלוח', 'הזמנה', 'הזמנות', 'עובד', 'עובדים', 'שעות', 'חופשה',
+  'משמרת', 'לקוח', 'לקוחות', 'מחסן', 'מחסנים', 'פריט', 'מוצר',
+  'טלפון', 'מעסיק', 'חוב', 'סטטוס', 'נסיעה', 'מסלול', 'פספסתי',
+  'ממתין', 'נמסר', 'פתוח', 'מסיים', 'מתי',
+];
+
+// Returns search results object if web search was needed, null if DB has the answer
+export async function searchIfNeeded(userMessage) {
+  const msg = userMessage.toLowerCase();
+  const isDbQuestion = DB_KEYWORDS.some(kw => msg.includes(kw));
+  if (isDbQuestion) return null;
+
+  try {
+    const res = await fetch('/api/search', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ query: userMessage }),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 export async function sendMessage(messages, systemPrompt) {
   const res = await fetch(AI_ENDPOINT, {
     method: 'POST',

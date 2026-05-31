@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Bot, X, Send, Sparkles, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ordersAPI, workersAPI, clientsAPI, deliveriesAPI, workerStatsAPI, employerContactAPI, pickupsAPI, clientProfileAPI } from '../../utils/api';
-import { sendMessage, buildSystemPrompt, getProactiveAlerts } from '../../utils/aiAPI';
+import { sendMessage, buildSystemPrompt, getProactiveAlerts, searchIfNeeded } from '../../utils/aiAPI';
 import './AIChat.css';
 
 const QUICK_CHIPS = {
@@ -125,9 +125,20 @@ export default function AIChat() {
     setMessages(nextMsgs);
     setLoading(true);
     try {
+      // If question isn't about internal DB, try web search first
+      const webResult = await searchIfNeeded(content);
+      let prompt = systemPrompt;
+      if (webResult && (webResult.answer || webResult.results?.length)) {
+        const lines = [
+          webResult.answer && `תשובה מהאינטרנט: ${webResult.answer}`,
+          ...(webResult.results || []).map(r => `• ${r.title}: ${r.content}`),
+        ].filter(Boolean).join('\n');
+        prompt = `${systemPrompt}\n\n=== מידע שנמצא באינטרנט ===\n${lines}`;
+      }
+
       const reply = await sendMessage(
         nextMsgs.map(m => ({ role: m.role, content: m.content })),
-        systemPrompt,
+        prompt,
       );
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
     } catch (err) {
