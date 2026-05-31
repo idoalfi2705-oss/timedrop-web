@@ -13,8 +13,7 @@ import './Workers.css';
 function exportToExcel(workers) {
   const headers = ['שם','טלפון','אזור','סטטוס','משלוחים','עמידה בלו"ז','דירוג'];
   const rows = workers.map(w => [w.name, w.phone || '', w.area, w.status, w.deliveries, `${w.onTime}%`, w.rating]);
-  const csv  = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}`).join(',')).join('
-');
+  const csv  = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}`).join(',')).join('\n');
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
   const a    = document.createElement('a');
   a.href     = URL.createObjectURL(blob);
