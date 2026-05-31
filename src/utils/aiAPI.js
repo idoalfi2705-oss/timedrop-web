@@ -23,6 +23,26 @@ export function buildSystemPrompt(role, contextData = {}) {
     `משלוח ${d.id}: ${d.clientName}, ${d.address}, סטטוס: ${d.status === 'delivered' ? 'נמסר' : 'ממתין'}`
   ).join('\n');
 
+  // Compute missed items: ordered 3+ times in days 8-30, but 0 times in the last 7 days
+  const DAY = 86400000;
+  const now = Date.now();
+  const recentItemSet = new Set();
+  const olderItemFreq = {};
+  orders.forEach(o => {
+    const ageDays = (now - new Date(o.date).getTime()) / DAY;
+    (o.items || []).forEach(it => {
+      if (ageDays <= 7) recentItemSet.add(it.name);
+      else if (ageDays <= 30) {
+        olderItemFreq[it.name] = (olderItemFreq[it.name] || 0) + 1;
+      }
+    });
+  });
+  const missedItemsList = Object.entries(olderItemFreq)
+    .filter(([name, n]) => n >= 3 && !recentItemSet.has(name))
+    .sort(([, a], [, b]) => b - a)
+    .map(([name, n]) => `${name} (${n} פעמים בחודש שעבר)`)
+    .join(', ') || 'אין';
+
   const base = `אתה עוזר AI חכם של מערכת TimeDrop לניהול משלוחים. תמיד ענה בעברית בצורה קצרה וברורה. אל תשתמש בכוכביות (** **) לעיצוב — פשוט כתוב טקסט רגיל.
 היום: ${new Date().toLocaleDateString('he-IL', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}.`;
 
@@ -38,7 +58,12 @@ ${ordersText || 'אין נתונים'}
 ${workersText || 'אין נתונים'}
 
 --- לקוחות ---
-${clientsText || 'אין נתונים'}`;
+${clientsText || 'אין נתונים'}
+
+--- פריטים שהוזמנו 3+ פעמים בחודש שעבר אך לא הוזמנו ב-7 ימים האחרונים ---
+${missedItemsList}
+
+כאשר שואלים "אילו פריטים פספסתי?" ענה בנקודות (•) עם שם הפריט, כמה פעמים הוזמן בחודש שעבר, והמלצה לפנות ללקוח.`;
   }
 
   if (role === 'worker') {
@@ -78,25 +103,33 @@ export async function sendMessage(messages, systemPrompt) {
 export function getProactiveAlerts(contextData) {
   const { orders = [], workers = [] } = contextData;
 
-  // Item frequency across all orders
-  const itemFreq = {};
-  orders.forEach(o => {
-    (o.items || []).forEach(item => {
-      itemFreq[item.name] = (itemFreq[item.name] || 0) + 1;
-    });
-  });
-
-  const frequentItems = Object.entries(itemFreq)
-    .filter(([, n]) => n >= 3)
-    .sort(([, a], [, b]) => b - a)
-    .map(([name, n]) => `${name} (${n} פעמים)`)
-    .join(', ') || 'אין';
-
+  // Active workers
   const activeWorkers = workers
     .filter(w => w.status === 'active')
     .map(w => w.name)
     .join(', ') || 'אין';
 
+  // Missed items: ordered 3+ times in days 8-30 but not in last 7 days
+  const DAY = 86400000;
+  const now = Date.now();
+  const recentItemSet = new Set();
+  const olderItemFreq = {};
+  orders.forEach(o => {
+    const ageDays = (now - new Date(o.date).getTime()) / DAY;
+    (o.items || []).forEach(it => {
+      if (ageDays <= 7) recentItemSet.add(it.name);
+      else if (ageDays <= 30) {
+        olderItemFreq[it.name] = (olderItemFreq[it.name] || 0) + 1;
+      }
+    });
+  });
+  const missedItems = Object.entries(olderItemFreq)
+    .filter(([name, n]) => n >= 3 && !recentItemSet.has(name))
+    .sort(([, a], [, b]) => b - a)
+    .map(([name, n]) => `${name} (${n} פעמים)`)
+    .join(', ') || 'אין';
+
+  // Pending orders
   const stuckOrders = orders
     .filter(o => o.status === 'pending')
     .map(o => o.id)
@@ -105,7 +138,7 @@ export function getProactiveAlerts(contextData) {
   return Promise.resolve(
     [
       `עובדים פעילים: ${activeWorkers}`,
-      `פריט בעל שכיחות: ${frequentItems}`,
+      `פריטים שלא הוזמנו לאחרונה: ${missedItems}`,
       `הזמנות תקועות: ${stuckOrders}`,
     ].join('\n')
   );

@@ -3,16 +3,16 @@
 .ai-fab {
   position: fixed;
   bottom: 24px;
-  right: 24px;
+  left: 24px;
   z-index: 1100;
   height: 46px;
   padding: 0 14px;
-  border-radius: 0 12px 12px 0;
+  border-radius: 12px 0 0 12px;
   background: linear-gradient(135deg, #7c3aed, #a855f7);
   border: none;
-  border-left: 1px solid rgba(255,255,255,0.2);
+  border-right: 1px solid rgba(255,255,255,0.2);
   cursor: pointer;
-  box-shadow: 2px 4px 16px rgba(124, 58, 237, 0.4);
+  box-shadow: -2px 4px 16px rgba(124, 58, 237, 0.4);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -31,7 +31,7 @@
 .ai-panel {
   position: fixed;
   bottom: 84px;
-  right: 24px;
+  left: 24px;
   width: 360px;
   max-height: 530px;
   background: #fff;
@@ -222,6 +222,6 @@
 .ai-chip:hover { background: #e9d5ff; }
 
 @media (max-width: 500px) {
-  .ai-panel { width: calc(100vw - 24px); right: 12px; bottom: 80px; }
-  .ai-fab   { bottom: 16px; right: 16px; border-radius: 0 10px 10px 0; }
+  .ai-panel { width: calc(100vw - 24px); left: 12px; bottom: 80px; }
+  .ai-fab   { bottom: 16px; left: 16px; border-radius: 10px 0 0 10px; }
 }
