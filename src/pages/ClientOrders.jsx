@@ -114,7 +114,7 @@ export default function ClientOrders() {
                               onMouseEnter={() => setHover(h => ({ ...h, [order.id]: star }))}
                               onMouseLeave={() => setHover(h => ({ ...h, [order.id]: null }))}
                               onClick={() => rate(order.id, star)}
-                            >★</button>
+                            >{star}</button>
                           ))}
                         </div>
                         {myRating && <span className="co-rated-badge">תודה!</span>}

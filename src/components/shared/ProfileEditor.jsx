@@ -59,7 +59,7 @@ export default function ProfileEditor({ onClose }) {
         <div className="profile-footer">
           <Btn variant="secondary" size="sm" onClick={onClose}>ביטול</Btn>
           <Btn variant="primary" size="sm" icon={saved ? null : <Save size={14}/>} onClick={save}>
-            {saved ? '✓ נשמר!' : 'שמור שינויים'}
+            {saved ? 'נשמר!' : 'שמור שינויים'}
           </Btn>
         </div>
       </div>

@@ -30,7 +30,7 @@ export default function NewWorkerPage() {
     setLoading(true);
     try {
       await workersAPI.create(form);
-      toast.success('העובד נוסף בהצלחה! ✅');
+      toast.success('העובד נוסף בהצלחה!');
       navigate('/dashboard/workers');
     } catch (e) {
       toast.error('שגיאה: ' + e.message);

@@ -51,9 +51,8 @@ function LiveTrackingMap({ workerLat, workerLon, clientLat, clientLon, workerNam
       );
       map.fitBounds(bounds, { padding: [40, 40] });
 
-      // Client pin (red 📍)
       const clientIcon = L.divIcon({
-        html: `<div style="font-size:28px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));">📍</div>`,
+        html: `<div style="width:18px;height:18px;background:#ef4444;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>`,
         className: '', iconSize: [28, 28], iconAnchor: [14, 28],
       });
       L.marker([clientLat, clientLon], { icon: clientIcon })
@@ -81,7 +80,7 @@ function LiveTrackingMap({ workerLat, workerLon, clientLat, clientLon, workerNam
           let stepIndex = Math.floor(coords.length * 0.15);
 
           const truckIcon = (step) => L.divIcon({
-            html: `<div style="background:#1e7fe0;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);font-size:18px;">🚛</div>`,
+            html: `<div style="background:#1e7fe0;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);color:#fff;font-size:13px;font-weight:700;">T</div>`,
             className: '', iconSize: [36, 36], iconAnchor: [18, 18],
           });
 
@@ -111,7 +110,7 @@ function LiveTrackingMap({ workerLat, workerLon, clientLat, clientLon, workerNam
         .catch(() => {
           // Fallback: simple truck marker without route
           const truckIcon = L.divIcon({
-            html: `<div style="background:#1e7fe0;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);font-size:18px;">🚛</div>`,
+            html: `<div style="background:#1e7fe0;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);color:#fff;font-size:13px;font-weight:700;">T</div>`,
             className: '', iconSize: [36, 36], iconAnchor: [18, 18],
           });
           L.marker([workerLat, workerLon], { icon: truckIcon })
@@ -184,7 +183,7 @@ export default function ClientHome() {
     <div className="client-home animate-fade">
       <div className="ch-welcome">
         <div>
-          <h1>שלום, {user?.name} 👋</h1>
+          <h1>שלום, {user?.name}</h1>
           <p>{user?.orgCode}</p>
         </div>
         <Btn variant="primary" icon={<Package size={16}/>} onClick={() => navigate('/client/new')}>

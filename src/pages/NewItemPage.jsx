@@ -32,7 +32,7 @@ export default function NewItemPage() {
         unit:     form.unit,
         category: form.category,
       });
-      toast.success('הפריט נשמר ב-ERPNext ✅');
+      toast.success('הפריט נשמר ב-ERPNext');
       navigate('/dashboard/items');
     } catch (e) {
       toast.error('שגיאה: ' + e.message);

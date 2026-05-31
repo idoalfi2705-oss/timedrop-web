@@ -46,8 +46,8 @@ export default function Clients() {
                   <div className="client-meta"><MapPin size={12}/> {c.area || c.address}</div>
                 </div>
                 <div className="client-side">
-                  {c.debt > 0 ? <span className="client-debt">{fmt(c.debt)}</span> : <span className="client-ok">✓ מסולק</span>}
-                  {c.rating > 0 && <div className="client-rating">★ {c.rating}</div>}
+                  {c.debt > 0 ? <span className="client-debt">{fmt(c.debt)}</span> : <span className="client-ok">מסולק</span>}
+                  {c.rating > 0 && <div className="client-rating">{c.rating}</div>}
                 </div>
               </div>
             ))}
@@ -72,7 +72,7 @@ export default function Clients() {
               <div className="client-stats-row">
                 <div className="client-stat"><div className="client-stat-val">{selected.totalOrders ?? clientOrders?.length ?? 0}</div><div className="client-stat-lbl">הזמנות</div></div>
                 <div className="client-stat"><div className="client-stat-val">{fmt(selected.debt ?? 0)}</div><div className="client-stat-lbl">יתרת חוב</div></div>
-                <div className="client-stat"><div className="client-stat-val">★ {selected.rating ?? '—'}</div><div className="client-stat-lbl">דירוג</div></div>
+                <div className="client-stat"><div className="client-stat-val">{selected.rating ?? '—'}</div><div className="client-stat-lbl">דירוג</div></div>
                 <div className="client-stat"><div className="client-stat-val">{selected.lastOrder ? new Date(selected.lastOrder).toLocaleDateString('he-IL') : '—'}</div><div className="client-stat-lbl">הזמנה אחרונה</div></div>
               </div>
             </Card>

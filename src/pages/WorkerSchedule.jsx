@@ -86,7 +86,7 @@ export default function WorkerSchedule() {
           {/* ── Section A: Pickups ── */}
           <div className="ws-section">
             <div className="ws-section-label">
-              <span>📦 איסוף סחורה</span>
+              <span>איסוף סחורה</span>
               <span className="ws-section-count">{collectedCount}/{pickupList.length}</span>
             </div>
 
@@ -141,7 +141,7 @@ export default function WorkerSchedule() {
           {/* ── Section B: Deliveries ── */}
           <div className="ws-section">
             <div className="ws-section-label">
-              <span>🚚 פיזור סחורה</span>
+              <span>פיזור סחורה</span>
               <span className="ws-section-count">{doneCount}/{tasks.length}</span>
             </div>
 

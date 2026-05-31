@@ -175,7 +175,7 @@ export default function WorkerInvoice() {
             )}
 
             {items.some(i => !i.active) && (
-              <div className="wi-missing-note">⚠️ פריטים חסרים הוסרו מהחשבונית. עדכון ישלח ללקוח ולמעסיק.</div>
+              <div className="wi-missing-note">פריטים חסרים הוסרו מהחשבונית. עדכון ישלח ללקוח ולמעסיק.</div>
             )}
           </Card>
 

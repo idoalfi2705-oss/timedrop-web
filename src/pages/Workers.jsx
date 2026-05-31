@@ -27,9 +27,9 @@ export default function Workers() {
     try {
       await workersAPI.respondLeave(id, { status: approve ? 'APPROVED' : 'REJECTED' });
       refetch();
-      toast.success(approve ? 'החופשה אושרה ✅' : 'החופשה נדחתה');
+      toast.success(approve ? 'החופשה אושרה' : 'החופשה נדחתה');
     } catch {
-      toast.success(approve ? 'החופשה אושרה ✅' : 'החופשה נדחתה');
+      toast.success(approve ? 'החופשה אושרה' : 'החופשה נדחתה');
     }
   };
 
@@ -57,7 +57,7 @@ export default function Workers() {
                 <td className="text-muted">{w.shift}</td>
                 <td>{w.deliveries}</td>
                 <td><span className="pct-badge">{w.onTime}%</span></td>
-                <td>{'★'.repeat(Math.round(w.rating || 0))}{'☆'.repeat(5-Math.round(w.rating || 0))}</td>
+                <td>{w.rating ? `${w.rating}/5` : '—'}</td>
                 <td><StatusBadge status={w.status}/></td>
                 <td>
                   {w.leaveRequest ? (

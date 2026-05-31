@@ -28,7 +28,7 @@ export default function NewClientPage() {
         phone:   form.phone,
         area:    form.area,
       });
-      toast.success('הלקוח נוסף ל-ERPNext! ✅');
+      toast.success('הלקוח נוסף ל-ERPNext!');
       navigate('/dashboard/clients');
     } catch (e) {
       toast.error('שגיאה: ' + e.message);

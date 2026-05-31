@@ -58,7 +58,7 @@ export default function Dashboard() {
     try {
       await respondLeave({ id, status: approve ? 'APPROVED' : 'REJECTED' });
       refetchLeave();
-      toast.success(approve ? 'אושר ✅' : 'נדחה');
+      toast.success(approve ? 'אושר' : 'נדחה');
     } catch {}
   };
 
@@ -233,7 +233,7 @@ export default function Dashboard() {
       {drawer === 'orders' && (
         <Drawer title="הזמנות ממתינות לאישור" onClose={() => setDrawer(null)}>
           {pending.length === 0
-            ? <p style={{color:'var(--gray-400)',textAlign:'center',padding:'40px'}}>אין הזמנות ממתינות 🎉</p>
+            ? <p style={{color:'var(--gray-400)',textAlign:'center',padding:'40px'}}>אין הזמנות ממתינות</p>
             : <table className="data-table">
                 <thead><tr><th>#</th><th>לקוח</th><th>תאריך</th><th>סכום</th><th>פעולה</th></tr></thead>
                 <tbody>{pending.map(o=><tr key={o.id}><td className="order-id">#{o.id}</td><td className="text-bold">{o.clientName}</td><td>{new Date(o.date).toLocaleDateString('he-IL')}</td><td>{fmt(o.total)}</td><td><button className="alert-btn approve" onClick={()=>toast.success('הזמנה אושרה!')}>אשר</button></td></tr>)}</tbody>
