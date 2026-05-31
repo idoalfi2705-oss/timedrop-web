@@ -61,6 +61,7 @@ ${clientsSnap || 'אין'}
 
   // ── Worker ──────────────────────────────────────────────────────────────────
   if (role === 'worker') {
+    const { travelTime } = contextData;
     const pending = deliveries.filter(d => d.status !== 'delivered');
     const delSnap = deliveries.map(d =>
       `${d.id}|${d.clientName}|${d.address}|${d.arrivalTime || '—'}|טל׳ ${d.clientPhone || '—'}|${d.status === 'delivered' ? 'נמסר' : 'ממתין'}`
@@ -68,10 +69,16 @@ ${clientsSnap || 'אין'}
 
     const pickSnap = pickups.map(p => `${p.name}|${p.address}|${p.pickupTime || '—'}`).join('\n') || 'אין';
 
-    const totalMins = deliveries.reduce((s, d) => s + (d.drivingMinutes || 0), 0);
-    const driveHrs  = Math.floor(totalMins / 60);
-    const driveMins = totalMins % 60;
-    const driveStr  = driveHrs > 0 ? `${driveHrs}ש' ${driveMins}ד'` : `${driveMins} דקות`;
+    // Real OSRM travel time — fall back to mock estimate if unavailable
+    let driveStr;
+    if (travelTime?.durationText) {
+      driveStr = `${travelTime.durationText} (${travelTime.distanceKm} ק"מ, לפי מפה אמיתית)`;
+    } else {
+      const totalMins = deliveries.reduce((s, d) => s + (d.drivingMinutes || 0), 0);
+      const driveHrs  = Math.floor(totalMins / 60);
+      const driveMins = totalMins % 60;
+      driveStr = (driveHrs > 0 ? `${driveHrs}ש' ${driveMins}ד'` : `${driveMins} דקות`) + ' (משוער)';
+    }
 
     return `${base} תפקיד: שליח.
 משלוחים היום (${deliveries.length} סה"כ, ${pending.length} ממתינים):
@@ -80,13 +87,13 @@ ${delSnap || 'אין'}
 ${pickSnap}
 החודש: ${workerStats.hoursWorked || 0} שעות | חופשה: ${workerStats.vacationDaysRemaining || 0} ימים נותרו (${workerStats.vacationDaysUsed || 0} נוצלו)
 מעסיק: ${employerContact.name || '—'} | טל׳ ${employerContact.phone || '—'}
-נסיעה משוערת: ${driveStr} (${totalMins} דקות ללא עצירות)
+נסיעה: ${driveStr}
 תשובות:
 • "כמה משלוחים פתוחים" → "${pending.length} פתוחים:" ואז כל אחד: "• [ID] | לאן: [כתובת] | שעה: [שעה]"
 • "כמה שעות עבדתי" → "${workerStats.hoursWorked || 0} שעות החודש"
 • "ימי חופשה" → "${workerStats.vacationDaysRemaining || 0} ימים נותרו, ${workerStats.vacationDaysUsed || 0} נוצלו"
 • "כמה מחסנים" → "${pickups.length} מחסנים" + כתובות בנקודות
-• "זמן נסיעה" → "${driveStr} ללא עצירות"
+• "זמן נסיעה" → "${driveStr}"
 • "טלפונים לקוחות" → נקודות: "• [שם] | [חנות] | טל׳ [מספר]"
 • "טלפון מעסיק" → "${employerContact.name || '—'}, טל׳ ${employerContact.phone || '—'}"`;
   }

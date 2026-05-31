@@ -73,7 +73,22 @@ export default function AIChat() {
             employerContactAPI.get(),
             pickupsAPI.getToday(),
           ]);
-          setContextData({ deliveries, workerStats, employerContact, pickups });
+
+          // Real driving time via OSRM (free) — pickups first, then deliveries
+          const allAddresses = [
+            ...pickups.map(p => p.address),
+            ...deliveries.map(d => d.address),
+          ].filter(Boolean);
+          let travelTime = null;
+          if (allAddresses.length >= 2) {
+            travelTime = await fetch('/api/travel-time', {
+              method:  'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body:    JSON.stringify({ addresses: allAddresses }),
+            }).then(r => r.json()).catch(() => null);
+          }
+
+          setContextData({ deliveries, workerStats, employerContact, pickups, travelTime });
         } else {
           const [orders, clientProfile] = await Promise.all([
             ordersAPI.getAll(),
