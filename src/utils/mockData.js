@@ -17,14 +17,21 @@ export const mockWorkers = [
 ];
 
 export const mockOrders = [
-  { id: 'SO-0001', clientId: 'C001', clientName: 'מסעדת הגליל',  date: new Date(Date.now() - 1*86400000), status: 'delivered', total: 1250, profit: 437, items: [{name:'לחם כפרי',qty:10,price:12},{name:'שמן זית',qty:5,price:45}] },
-  { id: 'SO-0002', clientId: 'C002', clientName: 'קפה תמר',      date: new Date(Date.now() - 2*86400000), status: 'pending',   total: 875,  profit: 306, items: [{name:'קפה',qty:20,price:30},{name:'סוכר',qty:5,price:15}] },
-  { id: 'SO-0003', clientId: 'C004', clientName: 'סופרמרקט שלי', date: new Date(),                        status: 'pending',   total: 3200, profit: 1120,items: [{name:'שמן',qty:50,price:25},{name:'קמח',qty:30,price:8}] },
-  { id: 'SO-0004', clientId: 'C003', clientName: 'מאפיית ירון',  date: new Date(Date.now() - 3*86400000), status: 'delivered', total: 640,  profit: 224, items: [{name:'שמרים',qty:20,price:8},{name:'קמח',qty:50,price:8}] },
-  { id: 'SO-0005', clientId: 'C005', clientName: 'מלון פלאזה',   date: new Date(Date.now() - 4*86400000), status: 'cancelled', total: 2100, profit: 0,   items: [{name:'מים מינרליים',qty:100,price:3}] },
-  { id: 'SO-0006', clientId: 'C001', clientName: 'מסעדת הגליל',  date: new Date(Date.now() - 5*86400000), status: 'delivered', total: 980,  profit: 343, items: [{name:'לחם כפרי',qty:8,price:12}] },
-  { id: 'SO-0007', clientId: 'C002', clientName: 'קפה תמר',      date: new Date(Date.now() - 6*86400000), status: 'delivered', total: 750,  profit: 262, items: [{name:'קפה',qty:15,price:30}] },
-  { id: 'SO-0008', clientId: 'C004', clientName: 'סופרמרקט שלי', date: new Date(Date.now() - 7*86400000), status: 'delivered', total: 4100, profit: 1435,items: [{name:'שמן',qty:80,price:25}] },
+  { id: 'SO-0001', clientId: 'C001', clientName: 'מסעדת הגליל',  date: new Date(Date.now() - 1*86400000),  status: 'delivered', total: 1250, profit: 437,  items: [{name:'לחם כפרי',qty:10,price:12},{name:'שמן זית',qty:5,price:45}] },
+  { id: 'SO-0002', clientId: 'C002', clientName: 'קפה תמר',      date: new Date(Date.now() - 2*86400000),  status: 'pending',   total: 875,  profit: 306,  items: [{name:'קפה',qty:20,price:30},{name:'סוכר',qty:5,price:15}] },
+  { id: 'SO-0003', clientId: 'C004', clientName: 'סופרמרקט שלי', date: new Date(),                         status: 'pending',   total: 3200, profit: 1120, items: [{name:'שמן',qty:50,price:25},{name:'קמח',qty:30,price:8}] },
+  { id: 'SO-0004', clientId: 'C003', clientName: 'מאפיית ירון',  date: new Date(Date.now() - 3*86400000),  status: 'delivered', total: 640,  profit: 224,  items: [{name:'שמרים',qty:20,price:8},{name:'קמח',qty:50,price:8}] },
+  { id: 'SO-0005', clientId: 'C005', clientName: 'מלון פלאזה',   date: new Date(Date.now() - 4*86400000),  status: 'cancelled', total: 2100, profit: 0,    items: [{name:'מים מינרליים',qty:100,price:3}] },
+  { id: 'SO-0006', clientId: 'C001', clientName: 'מסעדת הגליל',  date: new Date(Date.now() - 5*86400000),  status: 'delivered', total: 980,  profit: 343,  items: [{name:'לחם כפרי',qty:8,price:12}] },
+  { id: 'SO-0007', clientId: 'C002', clientName: 'קפה תמר',      date: new Date(Date.now() - 6*86400000),  status: 'delivered', total: 750,  profit: 262,  items: [{name:'קפה',qty:15,price:30}] },
+  { id: 'SO-0008', clientId: 'C004', clientName: 'סופרמרקט שלי', date: new Date(Date.now() - 7*86400000),  status: 'delivered', total: 4100, profit: 1435, items: [{name:'שמן',qty:80,price:25}] },
+  // orders from ~3-4 weeks ago — same items ordered repeatedly, creating high-frequency pattern
+  { id: 'SO-0009', clientId: 'C002', clientName: 'קפה תמר',      date: new Date(Date.now() - 14*86400000), status: 'delivered', total: 600,  profit: 210,  items: [{name:'קפה',qty:12,price:30},{name:'סוכר',qty:3,price:15}] },
+  { id: 'SO-0010', clientId: 'C001', clientName: 'מסעדת הגליל',  date: new Date(Date.now() - 16*86400000), status: 'delivered', total: 1100, profit: 385,  items: [{name:'לחם כפרי',qty:9,price:12},{name:'שמן זית',qty:4,price:45}] },
+  { id: 'SO-0011', clientId: 'C004', clientName: 'סופרמרקט שלי', date: new Date(Date.now() - 18*86400000), status: 'delivered', total: 3800, profit: 1330, items: [{name:'שמן',qty:70,price:25},{name:'קמח',qty:40,price:8}] },
+  { id: 'SO-0012', clientId: 'C002', clientName: 'קפה תמר',      date: new Date(Date.now() - 21*86400000), status: 'delivered', total: 900,  profit: 315,  items: [{name:'קפה',qty:18,price:30}] },
+  { id: 'SO-0013', clientId: 'C001', clientName: 'מסעדת הגליל',  date: new Date(Date.now() - 23*86400000), status: 'delivered', total: 840,  profit: 294,  items: [{name:'לחם כפרי',qty:7,price:12},{name:'שמן זית',qty:3,price:45}] },
+  { id: 'SO-0014', clientId: 'C004', clientName: 'סופרמרקט שלי', date: new Date(Date.now() - 25*86400000), status: 'delivered', total: 2900, profit: 1015, items: [{name:'שמן',qty:60,price:25}] },
 ];
 
 export const mockWarehouses = [

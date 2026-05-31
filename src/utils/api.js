@@ -23,14 +23,23 @@ function headers() {
 async function req(method, endpoint, body = null, params = {}) {
   let url = `${BASE_URL}${endpoint}`;
   if (Object.keys(params).length) url += '?' + new URLSearchParams(params).toString();
-  const res = await fetch(url, {
-    method,
-    headers: headers(),
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || data.exc || 'שגיאת שרת');
-  return data;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5000); // 5s timeout
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: headers(),
+      body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || data.exc || 'שגיאת שרת');
+    return data;
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
+  }
 }
 
 const fGet  = (ep, p) => req('GET',  ep, null, p || {});

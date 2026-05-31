@@ -74,31 +74,39 @@ export async function sendMessage(messages, systemPrompt) {
   return data.content;
 }
 
-// Proactive alerts — returns structured text in exact format for parsing
-export async function getProactiveAlerts(contextData) {
-  const systemPrompt = buildSystemPrompt('employer', contextData);
+// Proactive alerts — computed directly from context data, no AI call needed
+export function getProactiveAlerts(contextData) {
+  const { orders = [], workers = [] } = contextData;
 
-  // Compute item frequency from orders
+  // Item frequency across all orders
   const itemFreq = {};
-  (contextData.orders || []).forEach(o => {
+  orders.forEach(o => {
     (o.items || []).forEach(item => {
       itemFreq[item.name] = (itemFreq[item.name] || 0) + 1;
     });
   });
-  const freqText = Object.entries(itemFreq)
+
+  const frequentItems = Object.entries(itemFreq)
     .filter(([, n]) => n >= 3)
+    .sort(([, a], [, b]) => b - a)
     .map(([name, n]) => `${name} (${n} פעמים)`)
     .join(', ') || 'אין';
 
-  const messages = [{
-    role: 'user',
-    content: `נתח את נתוני העסק והחזר בדיוק בפורמט הבא, ללא כוכביות, ללא מלל נוסף:
-מלאי נמוך: [שמות פריטים מופרדים בפסיק, או "אין"]
-עובדים פעילים: [שמות עובדים פעילים מופרדים בפסיק]
-הזמנות תקועות: [מספרי הזמנות со סטטוס ממתין מופרדים בפסיק, או "אין"]
-פריט שלא הוזמן: ${freqText !== 'אין' ? freqText : 'אין (נדרשים 3+ הזמנות בחודש)'}
+  const activeWorkers = workers
+    .filter(w => w.status === 'active')
+    .map(w => w.name)
+    .join(', ') || 'אין';
 
-(פריטים עם תדירות גבוהה שחישבתי: ${freqText})`,
-  }];
-  return sendMessage(messages, systemPrompt);
+  const stuckOrders = orders
+    .filter(o => o.status === 'pending')
+    .map(o => o.id)
+    .join(', ') || 'אין';
+
+  return Promise.resolve(
+    [
+      `עובדים פעילים: ${activeWorkers}`,
+      `פריט בעל שכיחות: ${frequentItems}`,
+      `הזמנות תקועות: ${stuckOrders}`,
+    ].join('\n')
+  );
 }
