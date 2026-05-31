@@ -116,7 +116,7 @@ export default function AIChat() {
             <div className="ai-panel-header-icon"><Sparkles size={16}/></div>
             <div className="ai-panel-header-text">
               <h3>עוזר AI – TimeDrop</h3>
-              <p>{{ employer:'מנהל', worker:'שליח', client:'לקוח' }[role] || 'משתמש'} · Claude Haiku</p>
+              <p>{{ employer:'מנהל', worker:'שליח', client:'לקוח' }[role] || 'משתמש'} · Gemini Flash</p>
             </div>
             <button className="ai-panel-close" onClick={() => setOpen(false)}><X size={16}/></button>
           </div>
