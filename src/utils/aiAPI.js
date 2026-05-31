@@ -62,40 +62,54 @@ ${clientsSnap || 'אין'}
   // ── Worker ──────────────────────────────────────────────────────────────────
   if (role === 'worker') {
     const { travelTime } = contextData;
-    const pending = deliveries.filter(d => d.status !== 'delivered');
+    const pending   = deliveries.filter(d => d.status !== 'delivered');
+    const delivered = deliveries.filter(d => d.status === 'delivered');
+    const lastDelivery = [...deliveries].sort((a, b) =>
+      (b.arrivalTime || '').localeCompare(a.arrivalTime || '')
+    )[0];
+
     const delSnap = deliveries.map(d =>
-      `${d.id}|${d.clientName}|${d.address}|${d.arrivalTime || '—'}|טל׳ ${d.clientPhone || '—'}|${d.status === 'delivered' ? 'נמסר' : 'ממתין'}`
+      `${d.id}|${d.clientName}|${d.address}|שעה:${d.arrivalTime || '—'}|טל׳ ${d.clientPhone || '—'}|${d.status === 'delivered' ? 'נמסר' : 'ממתין'}`
     ).join('\n');
 
-    const pickSnap = pickups.map(p => `${p.name}|${p.address}|${p.pickupTime || '—'}`).join('\n') || 'אין';
+    const pickSnap = pickups.map(p =>
+      `${p.name}|${p.address}|${p.pickupTime || '—'}`
+    ).join('\n') || 'אין';
 
-    // Real OSRM travel time — fall back to mock estimate if unavailable
+    // Real OSRM travel time or fallback
     let driveStr;
     if (travelTime?.durationText) {
-      driveStr = `${travelTime.durationText} (${travelTime.distanceKm} ק"מ, לפי מפה אמיתית)`;
+      driveStr = `${travelTime.durationText} (${travelTime.distanceKm} ק"מ — לפי מפה אמיתית)`;
     } else {
       const totalMins = deliveries.reduce((s, d) => s + (d.drivingMinutes || 0), 0);
-      const driveHrs  = Math.floor(totalMins / 60);
-      const driveMins = totalMins % 60;
-      driveStr = (driveHrs > 0 ? `${driveHrs}ש' ${driveMins}ד'` : `${driveMins} דקות`) + ' (משוער)';
+      const h = Math.floor(totalMins / 60);
+      const m = totalMins % 60;
+      driveStr = (h > 0 ? `${h} שעות ו-${m} דקות` : `${m} דקות`) + ' (משוער)';
     }
 
+    const shiftStart = workerStats.shiftStart || '07:30';
+    const shiftEnd   = workerStats.shiftEnd   || '16:00';
+    const shiftType  = workerStats.shiftType  || 'בוקר';
+
     return `${base} תפקיד: שליח.
-משלוחים היום (${deliveries.length} סה"כ, ${pending.length} ממתינים):
+משלוחים היום: ${deliveries.length} סה"כ | ${delivered.length} נמסרו | ${pending.length} ממתינים
 ${delSnap || 'אין'}
-מחסנים לאיסוף (${pickups.length}):
-${pickSnap}
-החודש: ${workerStats.hoursWorked || 0} שעות | חופשה: ${workerStats.vacationDaysRemaining || 0} ימים נותרו (${workerStats.vacationDaysUsed || 0} נוצלו)
+מחסנים (${pickups.length}): ${pickSnap}
+משמרת היום: ${shiftType} | ${shiftStart}–${shiftEnd}
+החודש: ${workerStats.hoursWorked || 0} שעות עבודה
+חופשה: ${workerStats.vacationDaysRemaining || 0} ימים נותרו | ${workerStats.vacationDaysUsed || 0} נוצלו
 מעסיק: ${employerContact.name || '—'} | טל׳ ${employerContact.phone || '—'}
-נסיעה: ${driveStr}
-תשובות:
-• "כמה משלוחים פתוחים" → "${pending.length} פתוחים:" ואז כל אחד: "• [ID] | לאן: [כתובת] | שעה: [שעה]"
-• "כמה שעות עבדתי" → "${workerStats.hoursWorked || 0} שעות החודש"
-• "ימי חופשה" → "${workerStats.vacationDaysRemaining || 0} ימים נותרו, ${workerStats.vacationDaysUsed || 0} נוצלו"
-• "כמה מחסנים" → "${pickups.length} מחסנים" + כתובות בנקודות
-• "זמן נסיעה" → "${driveStr}"
-• "טלפונים לקוחות" → נקודות: "• [שם] | [חנות] | טל׳ [מספר]"
-• "טלפון מעסיק" → "${employerContact.name || '—'}, טל׳ ${employerContact.phone || '—'}"`;
+זמן נסיעה כולל: ${driveStr}
+
+כללי תשובה — ענה בדיוק לפי הנתונים:
+שאלה "משלוחים פתוחים" → כתוב "${pending.length} משלוחים פתוחים:" ואז לכל אחד שורה: "• [ID] | לאן: [כתובת] | שעה: [שעה]"
+שאלה "כמה שעות עבדתי" → "עבדת ${workerStats.hoursWorked || 0} שעות החודש"
+שאלה "ימי חופשה" → "נותרו לך ${workerStats.vacationDaysRemaining || 0} ימי חופשה (ניצלת ${workerStats.vacationDaysUsed || 0})"
+שאלה "עד מתי המשמרת" או "מתי מסיים" → "המשמרת שלך היום היא משמרת ${shiftType}, ${shiftStart}–${shiftEnd}"
+שאלה "כמה מחסנים" → "${pickups.length} מחסנים:" ואז כתובת כל אחד בנקודה
+שאלה "זמן נסיעה" → "${driveStr}"
+שאלה "טלפונים לקוחות" → לכל לקוח שורה: "• [שם לקוח] | [שם חנות] | טל׳ [מספר]"
+שאלה "טלפון מעסיק" → "המעסיק ${employerContact.name || '—'}, טל׳ ${employerContact.phone || '—'}"`;
   }
 
   // ── Client ──────────────────────────────────────────────────────────────────

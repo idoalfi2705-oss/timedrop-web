@@ -66,16 +66,23 @@ export const mockItems = [
   { id:'ITEM006', sku:'ITEM006', name:'מים מינרליים',   description:'מים מינרליים 1.5L',      price:3,   unit:'בקבוק',category:'משקאות',   qty:500, supplier:'נביעות' },
 ];
 
+const _today = new Date().toISOString().split('T')[0];
 export const mockDeliveries = [
-  { id:'DN-0001', clientName:'מסעדת הגליל',  clientPhone:'054-1234567', address:'רחוב הרצל 10, תל אביב',        date:new Date().toISOString().split('T')[0], status:'pending',   total:1250, arrivalTime:'09:30', drivingMinutes:20, items:[{name:'לחם כפרי',qty:10},{name:'שמן זית',qty:5}] },
-  { id:'DN-0002', clientName:'קפה תמר',      clientPhone:'052-9876543', address:'שדרות רוטשילד 5, תל אביב',     date:new Date().toISOString().split('T')[0], status:'pending',   total:875,  arrivalTime:'10:15', drivingMinutes:15, items:[{name:'קפה',qty:20},{name:'סוכר',qty:5}] },
-  { id:'DN-0003', clientName:'סופרמרקט שלי', clientPhone:'053-7777777', address:'רחוב אבן גבירול 20, רמת גן',   date:new Date().toISOString().split('T')[0], status:'delivered', total:3200, arrivalTime:'11:00', drivingMinutes:30, items:[{name:'שמן',qty:50},{name:'קמח',qty:30}] },
+  { id:'DN-0001', clientName:'מסעדת הגליל',  clientPhone:'054-1234567', address:'רחוב הרצל 10, תל אביב',          date:_today, status:'delivered', total:1250, arrivalTime:'08:30', drivingMinutes:18, items:[{name:'לחם כפרי',qty:10},{name:'שמן זית',qty:5}] },
+  { id:'DN-0002', clientName:'קפה תמר',      clientPhone:'052-9876543', address:'שדרות רוטשילד 5, תל אביב',       date:_today, status:'delivered', total:875,  arrivalTime:'09:15', drivingMinutes:12, items:[{name:'קפה',qty:20},{name:'סוכר',qty:5}] },
+  { id:'DN-0003', clientName:'סופרמרקט שלי', clientPhone:'053-7777777', address:'רחוב אבן גבירול 20, רמת גן',     date:_today, status:'pending',   total:3200, arrivalTime:'10:30', drivingMinutes:22, items:[{name:'שמן',qty:50},{name:'קמח',qty:30}] },
+  { id:'DN-0004', clientName:'מלון פלאזה',   clientPhone:'058-3333333', address:'רחוב הרצוג 8, נתניה',            date:_today, status:'pending',   total:1800, arrivalTime:'12:00', drivingMinutes:35, items:[{name:'מים מינרליים',qty:100},{name:'מיצים',qty:24}] },
+  { id:'DN-0005', clientName:'מאפיית ירון',  clientPhone:'050-5555555', address:'רחוב יפו 33, ירושלים',           date:_today, status:'pending',   total:640,  arrivalTime:'14:00', drivingMinutes:50, items:[{name:'שמרים',qty:20},{name:'קמח',qty:50}] },
+  { id:'DN-0006', clientName:'מסעדת הים',    clientPhone:'054-9988776', address:'טיילת הציר 5, תל אביב',          date:_today, status:'pending',   total:2100, arrivalTime:'15:00', drivingMinutes:20, items:[{name:'שמן זית',qty:10},{name:'לחם כפרי',qty:15}] },
 ];
 
 export const mockWorkerMonthStats = {
   hoursWorked:           84,
   vacationDaysRemaining: 12,
   vacationDaysUsed:       3,
+  shiftType:             'בוקר',
+  shiftStart:            '07:30',
+  shiftEnd:              '16:00',
 };
 
 export const mockEmployerContact = {
