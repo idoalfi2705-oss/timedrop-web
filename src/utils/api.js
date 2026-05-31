@@ -1,5 +1,6 @@
 // src/utils/api.js
-// חיבור ל-ERPNext דרך Frappe REST API
+// כל הפונקציות לתקשורת עם ה-API של ERPNext.
+// במקרה של שגיאה — מחזיר נתוני mock כ-fallback.
 
 import {
   mockClients, mockWorkers, mockOrders, mockWarehouses, mockStock,
@@ -74,6 +75,7 @@ export const clientsAPI = {
         fields: JSON.stringify(['name','customer_name','mobile_no','territory','outstanding_amount']),
         limit:  100,
       });
+      // ממפה שדות ERPNext לפורמט הפנימי
       return (data.data || []).map(c => ({
         id:          c.name,
         name:        c.customer_name,
@@ -113,13 +115,17 @@ export const clientsAPI = {
 
 // ── Orders ────────────────────────────────────────────────────────────────────
 
+// ממיר סטטוס ERPNext לסטטוס פנימי
 function mapStatus(s) {
   return ({ Draft:'pending', 'To Deliver':'pending', Completed:'delivered', Cancelled:'cancelled' })[s] || 'pending';
 }
 
+const today = () => new Date().toISOString().split('T')[0];
+
 export const ordersAPI = {
   getAll: async (params = {}) => {
     try {
+      // בונה פילטרים לפי פרמטרים שנשלחו
       const filters = [];
       if (params.status)   filters.push(['status',   '=', params.status]);
       if (params.clientId) filters.push(['customer', '=', params.clientId]);
@@ -158,8 +164,8 @@ export const ordersAPI = {
   create: async (order) => {
     const data = await fPost('/api/resource/Sales Order', {
       customer:         order.clientId,
-      transaction_date: new Date().toISOString().split('T')[0],
-      delivery_date:    order.deliveryDate || new Date().toISOString().split('T')[0],
+      transaction_date: today(),
+      delivery_date:    order.deliveryDate || today(),
       items: (order.items || []).map(i => ({
         item_code: i.sku || i.name,
         qty:       i.qty,
@@ -190,6 +196,7 @@ export const warehousesAPI = {
     } catch { return mockWarehouses; }
   },
 
+  // מחזיר מלאי מחסן לפי ID מחסן
   getStock: async (warehouseId) => {
     try {
       const data = await fGet('/api/resource/Bin', {
@@ -199,7 +206,7 @@ export const warehousesAPI = {
       });
       return (data.data || []).map((b, i) => ({
         id:          i + 1,
-        warehouseId: warehouseId,
+        warehouseId,
         name:        b.item_name || b.item_code,
         sku:         b.item_code,
         qty:         b.actual_qty || 0,
@@ -263,6 +270,7 @@ export const workersAPI = {
         fields: JSON.stringify(['name','employee_name','cell_number','branch','status','designation']),
         limit:  100,
       });
+      // ממיר שדה status מ-ERPNext לפורמט פנימי
       return (data.data || []).map(e => ({
         id:           e.name,
         name:         e.employee_name,
@@ -296,6 +304,7 @@ export const workersAPI = {
 
   getLeaveRequests: async () => {
     try {
+      // שולף בקשות חופשה פתוחות בלבד
       const data = await fGet('/api/resource/Leave Application', {
         fields:  JSON.stringify(['name','employee','employee_name','leave_type','from_date','status']),
         filters: JSON.stringify([['status', '=', 'Open']]),
@@ -334,10 +343,9 @@ export const workersAPI = {
 export const deliveriesAPI = {
   getToday: async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
       const data = await fGet('/api/resource/Delivery Note', {
         fields:  JSON.stringify(['name','customer_name','customer_address','posting_date','status','grand_total']),
-        filters: JSON.stringify([['posting_date', '=', today]]),
+        filters: JSON.stringify([['posting_date', '=', today()]]),
         limit:   50,
       });
       return (data.data || []).map(d => ({
@@ -370,6 +378,8 @@ export const deliveriesAPI = {
 
 // ── Worker Extra Data ─────────────────────────────────────────────────────────
 
+// ── Worker Extra Data ─────────────────────────────────────────────────────────
+
 export const workerStatsAPI = {
   getMyStats: async () => {
     try {
@@ -377,6 +387,7 @@ export const workerStatsAPI = {
         fields: JSON.stringify(['attendance_device_id','total_leaves_allocated','leaves_taken']),
       });
       const e = data.data || {};
+      // fallback לנתוני mock אם שדה חסר
       return {
         hoursWorked:           e.hoursWorked           || mockWorkerMonthStats.hoursWorked,
         vacationDaysRemaining: e.vacationDaysRemaining  || mockWorkerMonthStats.vacationDaysRemaining,
@@ -393,7 +404,11 @@ export const employerContactAPI = {
         fields: JSON.stringify(['company_name','phone_no','email']),
       });
       const c = data.data || {};
-      return { name: c.company_name || mockEmployerContact.name, phone: c.phone_no || mockEmployerContact.phone, email: c.email || mockEmployerContact.email };
+      return {
+        name:  c.company_name || mockEmployerContact.name,
+        phone: c.phone_no     || mockEmployerContact.phone,
+        email: c.email        || mockEmployerContact.email,
+      };
     } catch { return mockEmployerContact; }
   },
 };
@@ -401,10 +416,10 @@ export const employerContactAPI = {
 export const pickupsAPI = {
   getToday: async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      // איסופים = קבלות רכש של היום
       const data = await fGet('/api/resource/Purchase Receipt', {
         fields:  JSON.stringify(['name','supplier','set_warehouse','posting_date']),
-        filters: JSON.stringify([['posting_date','=',today]]),
+        filters: JSON.stringify([['posting_date','=',today()]]),
         limit:   20,
       });
       return (data.data || []).map(p => ({
@@ -425,10 +440,10 @@ export const clientProfileAPI = {
       });
       const c = data.data || {};
       return {
-        name:        c.customer_name || mockClientProfile.name,
-        phone:       c.mobile_no    || mockClientProfile.phone,
+        name:        c.customer_name    || mockClientProfile.name,
+        phone:       c.mobile_no        || mockClientProfile.phone,
         debt:        c.outstanding_amount || mockClientProfile.debt,
-        creditLimit: c.credit_limit || mockClientProfile.creditLimit,
+        creditLimit: c.credit_limit     || mockClientProfile.creditLimit,
       };
     } catch { return mockClientProfile; }
   },
@@ -439,10 +454,11 @@ export const clientProfileAPI = {
 export const reportsAPI = {
   getKpi: async () => {
     try {
-      const today        = new Date();
-      const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-      const todayStr     = today.toISOString().split('T')[0];
+      const now          = new Date();
+      const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+      const todayStr     = today();
 
+      // טוען את כל הנתונים לדשבורד במקביל
       const [monthInv, todayInv, pending, lowStock, empList] = await Promise.all([
         fGet('/api/resource/Sales Invoice', {
           fields:  JSON.stringify(['grand_total']),
@@ -484,6 +500,7 @@ export const reportsAPI = {
 
   getRevenueByDay: async (days = 30) => {
     try {
+      // בונה מערך תאריכים לטווח הנדרש
       const dates = Array.from({ length: days }, (_, i) => {
         const d = new Date();
         d.setDate(d.getDate() - (days - 1 - i));
@@ -498,6 +515,7 @@ export const reportsAPI = {
         ]),
         limit: 1000,
       });
+      // מצבר הכנסות ורווח לפי תאריך
       const byDate = {};
       (data.data || []).forEach(inv => {
         const d = inv.posting_date;
@@ -520,6 +538,7 @@ export const reportsAPI = {
         limit:    500,
         order_by: 'amount desc',
       });
+      // מצבר כמויות ורווח לכל מוצר
       const byItem = {};
       (data.data || []).forEach(i => {
         if (!byItem[i.item_name]) byItem[i.item_name] = { כמות: 0, הכנסה: 0, רווח: 0 };

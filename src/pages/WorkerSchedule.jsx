@@ -1,3 +1,6 @@
+// src/pages/WorkerSchedule.jsx
+// לוח הזמנים היומי של שליח: רשימת איסופים ממחסנים ומשלוחים ללקוחות.
+// מאפשר סימון כהושלם ודיווח שיבוש.
 import React, { useState } from 'react';
 import {
   CheckCircle, Circle, MapPin, Phone,
@@ -18,6 +21,7 @@ export default function WorkerSchedule() {
   const { data: deliveries, loading: loadD } = useApi(() => deliveriesAPI.getToday(), []);
   const { data: pickups,    loading: loadP } = useApi(() => pickupsAPI.getToday(), []);
 
+  // ממפה משלוחים — מאחד סטטוס שרת עם סטטוס מקומי (doneMap)
   const tasks = (deliveries || []).map(d => ({
     id:         d.id,
     clientName: d.clientName,
@@ -29,6 +33,7 @@ export default function WorkerSchedule() {
     total:      d.total || 0,
   }));
 
+  // ממפה איסופים — מאחד עם collectedMap מקומי
   const pickupList = (pickups || []).map(p => ({
     id:         p.id,
     name:       p.name,
@@ -38,9 +43,11 @@ export default function WorkerSchedule() {
     collected:  collectedMap[p.id] ?? false,
   }));
 
+  // מחליף סטטוס משלוח / איסוף בלחיצה
   const toggleDone      = (id) => setDoneMap(m => ({ ...m, [id]: !tasks.find(t => t.id === id)?.done }));
   const toggleCollected = (id) => setCollectedMap(m => ({ ...m, [id]: !pickupList.find(p => p.id === id)?.collected }));
 
+  // חישוב אחוז התקדמות לטבעת
   const doneCount      = tasks.filter(t => t.done).length;
   const collectedCount = pickupList.filter(p => p.collected).length;
   const totalCount     = tasks.length + pickupList.length;

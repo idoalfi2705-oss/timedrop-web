@@ -1,3 +1,5 @@
+// src/pages/Orders.jsx
+// טבלת כל ההזמנות עם חיפוש, פילטר סטטוס, טווח תאריכים וייצוא לאקסל.
 import React, { useState } from 'react';
 import { Search, Download } from 'lucide-react';
 import { Card, StatusBadge } from '../components/shared/UI';
@@ -7,31 +9,27 @@ import './Orders.css';
 
 const fmt = n => '₪' + n.toLocaleString('he-IL');
 
+// מייצא הזמנות ל-CSV עם BOM לתמיכה בעברית באקסל
 function exportToExcel(orders) {
-  const headers = ['#', 'לקוח', 'תאריך', 'פריטים', 'סכום', 'רווח', 'סטטוס'];
   const STATUS = { delivered: 'נמסר', pending: 'ממתין', cancelled: 'בוטל' };
+  const headers = ['#', 'לקוח', 'תאריך', 'פריטים', 'סכום', 'רווח', 'סטטוס'];
   const rows = orders.map(o => [
-    o.id,
-    o.clientName,
+    o.id, o.clientName,
     new Date(o.date).toLocaleDateString('he-IL'),
     o.items?.map(i => `${i.name} ×${i.qty}`).join(', ') || '',
-    o.total,
-    o.profit ?? 0,
+    o.total, o.profit ?? 0,
     STATUS[o.status] || o.status,
   ]);
-
-  const csv = [headers, ...rows]
+  const csv  = [headers, ...rows]
     .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-    .join('\n');
-
-  const bom = '\uFEFF';
-  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
+    .join('
+');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
   a.download = `הזמנות_${new Date().toLocaleDateString('he-IL').replace(/\//g, '-')}.csv`;
   a.click();
-  URL.revokeObjectURL(url);
+  URL.revokeObjectURL(a.href);
 }
 
 export default function Orders() {
@@ -45,12 +43,14 @@ export default function Orders() {
     [fromDate, toDate]
   );
 
+  // מסנן לפי חיפוש חופשי + סטטוס נבחר
   const list = (orders || []).filter(o => {
     const matchSearch = o.clientName?.includes(search) || String(o.id).includes(search);
     const matchStatus = status === 'all' || o.status === status;
     return matchSearch && matchStatus;
   });
 
+  // סכומי סרגל כותרת
   const total  = list.reduce((s, o) => s + (o.total  ?? 0), 0);
   const profit = list.reduce((s, o) => s + (o.profit ?? 0), 0);
 

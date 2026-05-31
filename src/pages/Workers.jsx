@@ -1,3 +1,5 @@
+// src/pages/Workers.jsx
+// רשימת עובדים: טבלה + כרטיסיות, ניהול בקשות חופשה וייצוא לאקסל/CSV.
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Download, CheckCircle, XCircle, Clock, Truck, Star } from 'lucide-react';
@@ -7,13 +9,17 @@ import { useApi } from '../hooks/useApi';
 import toast from 'react-hot-toast';
 import './Workers.css';
 
+// מייצא רשימת עובדים ל-CSV עם BOM לתמיכה בעברית באקסל
 function exportToExcel(workers) {
   const headers = ['שם','טלפון','אזור','סטטוס','משלוחים','עמידה בלו"ז','דירוג'];
-  const rows = workers.map(w => [w.name,w.phone||'',w.area,w.status,w.deliveries,`${w.onTime}%`,w.rating]);
-  const csv = [headers,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}`).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
-  const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`עובדים_${new Date().toLocaleDateString('he-IL').replace(/\//g,'-')}.csv`; a.click();
+  const rows = workers.map(w => [w.name, w.phone || '', w.area, w.status, w.deliveries, `${w.onTime}%`, w.rating]);
+  const csv  = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}`).join(',')).join('
+');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+    a.download = `עובדים_${new Date().toLocaleDateString('he-IL').replace(/\//g, '-')}.csv`;
+  a.click();
 }
 
 export default function Workers() {
@@ -21,6 +27,7 @@ export default function Workers() {
   const { data: apiWorkers, refetch } = useApi(() => workersAPI.getAll(), []);
   const [extra] = useState([]);
 
+  // מאחד עובדים מ-API עם עובדים שנוספו מקומית
   const workers = [...(apiWorkers || []), ...extra];
 
   const handleLeave = async (id, approve) => {

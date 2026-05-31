@@ -1,4 +1,6 @@
-// Frontend client for the AI agent — calls /api/ai (Vercel serverless)
+// src/utils/aiAPI.js
+// לוגיקת AI בצד הלקוח: בניית system-prompt, שליחת הודעות ל-Vercel serverless,
+// חיפוש אינטרנטי אם השאלה לא בנושא פנים-מערכתי, והפקת התראות פרואקטיביות.
 
 const AI_ENDPOINT = '/api/ai';
 
@@ -14,19 +16,19 @@ export function buildSystemPrompt(role, contextData = {}) {
 
   // ── Employer ────────────────────────────────────────────────────────────────
   if (role === 'employer') {
-    const ordersSnap = orders.slice(0, 10).map(o =>
-      `${o.id}|${o.clientName}|₪${o.total}|${{ delivered:'נמסר', pending:'ממתין', cancelled:'בוטל' }[o.status] || o.status}`
+    // סנאפשוט מקוצר של הזמנות, עובדים, לקוחות לשליחה ל-AI
+    const STATUS_HE = { delivered:'נמסר', pending:'ממתין', cancelled:'בוטל' };
+    const ordersSnap  = orders.slice(0, 10).map(o =>
+      `${o.id}|${o.clientName}|₪${o.total}|${STATUS_HE[o.status] || o.status}`
     ).join('\n');
-
     const workersSnap = workers.map(w =>
       `${w.name}|${w.area}|${w.status === 'active' ? 'פעיל' : 'לא פעיל'}`
     ).join('\n');
-
     const clientsSnap = clients.map(c =>
       `${c.name}|חוב ₪${c.debt}|טל׳ ${c.phone || '—'}`
     ).join('\n');
 
-    // Missed items: 3+ orders days 8-30, absent last 7 days
+    // מחשב פריטים שנעלמו: הוזמנו 3+ פעמים בימים 8–30, אך לא ב-7 ימים האחרונים
     const DAY = 86400000;
     const now = Date.now();
     const recentSet = new Set();
@@ -44,7 +46,7 @@ export function buildSystemPrompt(role, contextData = {}) {
       .map(([n, c]) => `${n} (${c}×)`)
       .join(', ') || 'אין';
 
-    const pending = orders.filter(o => o.status === 'pending').length;
+    const pending  = orders.filter(o => o.status === 'pending').length;
     const withDebt = clients.filter(c => c.debt > 0).length;
 
     return `${base} תפקיד: מנהל.
@@ -64,19 +66,16 @@ ${clientsSnap || 'אין'}
     const { travelTime } = contextData;
     const pending   = deliveries.filter(d => d.status !== 'delivered');
     const delivered = deliveries.filter(d => d.status === 'delivered');
-    const lastDelivery = [...deliveries].sort((a, b) =>
-      (b.arrivalTime || '').localeCompare(a.arrivalTime || '')
-    )[0];
 
+    // סנאפשוט משלוחים ואיסופים לשורות טקסט
     const delSnap = deliveries.map(d =>
       `${d.id}|${d.clientName}|${d.address}|שעה:${d.arrivalTime || '—'}|טל׳ ${d.clientPhone || '—'}|${d.status === 'delivered' ? 'נמסר' : 'ממתין'}`
     ).join('\n');
-
     const pickSnap = pickups.map(p =>
       `${p.name}|${p.address}|${p.pickupTime || '—'}`
     ).join('\n') || 'אין';
 
-    // Real OSRM travel time or fallback
+    // זמן נסיעה: OSRM אמיתי אם קיים, אחרת חישוב משוער
     let driveStr;
     if (travelTime?.durationText) {
       driveStr = `${travelTime.durationText} (${travelTime.distanceKm} ק"מ — לפי מפה אמיתית)`;
@@ -114,11 +113,11 @@ ${delSnap || 'אין'}
 
   // ── Client ──────────────────────────────────────────────────────────────────
   if (role === 'client') {
+    const STATUS_HE = { delivered:'נמסרה', pending:'בדרך', cancelled:'בוטלה' };
     const myOrders = orders.slice(0, 8);
+    // סנאפשוט הזמנות לקוח לשליחה ל-AI
     const ordSnap  = myOrders.map(o =>
-      `${o.id}|${new Date(o.date).toLocaleDateString('he-IL')}|₪${o.total}|${
-        { delivered:'נמסרה', pending:'בדרך', cancelled:'בוטלה' }[o.status] || o.status
-      }`
+      `${o.id}|${new Date(o.date).toLocaleDateString('he-IL')}|₪${o.total}|${STATUS_HE[o.status] || o.status}`
     ).join('\n');
 
     const nd   = clientProfile.nextDelivery;
@@ -179,15 +178,17 @@ export async function sendMessage(messages, systemPrompt) {
   return data.content;
 }
 
-// Proactive alerts — computed directly from context data, no AI call needed
+// מחשב התראות פרואקטיביות מנתוני הקונטקסט — ללא קריאה ל-AI
 export function getProactiveAlerts(contextData) {
   const { orders = [], workers = [] } = contextData;
 
+  // שמות עובדים פעילים
   const activeWorkers = workers
     .filter(w => w.status === 'active')
     .map(w => w.name)
     .join(', ') || 'אין';
 
+  // מחשב פריטים שנעלמו (אותו אלגוריתם כמו ב-buildSystemPrompt)
   const DAY = 86400000;
   const now = Date.now();
   const recentItemSet = new Set();

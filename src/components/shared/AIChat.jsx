@@ -1,3 +1,6 @@
+// src/components/shared/AIChat.jsx
+// צ'אט AI צף (FAB) — נטען קונטקסט לפי תפקיד המשתמש ושולח ל-/api/ai.
+// תומך בתפקידים: employer, worker, client.
 import React, { useState, useEffect, useRef } from 'react';
 import { Bot, X, Send, Sparkles, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -62,19 +65,19 @@ export default function AIChat() {
     async function loadContext() {
       try {
         if (role === 'employer') {
+          // טוען הזמנות, עובדים, לקוחות למנהל
           const [orders, workers, clients] = await Promise.all([
             ordersAPI.getAll(), workersAPI.getAll(), clientsAPI.getAll(),
           ]);
           setContextData({ orders, workers, clients });
-        } else if (role === 'worker') {
-          const [deliveries, workerStats, employerContact, pickups] = await Promise.all([
-            deliveriesAPI.getToday(),
-            workerStatsAPI.getMyStats(),
-            employerContactAPI.get(),
-            pickupsAPI.getToday(),
-          ]);
 
-          // Real driving time via OSRM (free) — pickups first, then deliveries
+        } else if (role === 'worker') {
+          // טוען משלוחים, נתוני עובד, איסופים לשליח
+          const [deliveries, workerStats, employerContact, pickups] = await Promise.all([
+            deliveriesAPI.getToday(), workerStatsAPI.getMyStats(),
+            employerContactAPI.get(), pickupsAPI.getToday(),
+          ]);
+          // מחשב זמן נסיעה אמיתי ב-OSRM (חינמי) אם יש 2+ כתובות
           const allAddresses = [
             ...pickups.map(p => p.address),
             ...deliveries.map(d => d.address),
@@ -87,16 +90,16 @@ export default function AIChat() {
               body:    JSON.stringify({ addresses: allAddresses }),
             }).then(r => r.json()).catch(() => null);
           }
-
           setContextData({ deliveries, workerStats, employerContact, pickups, travelTime });
+
         } else {
+          // לקוח — הזמנות ופרופיל אישי
           const [orders, clientProfile] = await Promise.all([
-            ordersAPI.getAll(),
-            clientProfileAPI.getMyProfile(),
+            ordersAPI.getAll(), clientProfileAPI.getMyProfile(),
           ]);
           setContextData({ orders, clientProfile });
         }
-      } catch { /* use empty context */ }
+      } catch { /* מתחיל עם קונטקסט ריק אם טעינה נכשלה */ }
     }
     loadContext();
   }, [role]);
@@ -120,12 +123,11 @@ export default function AIChat() {
     const content = (text || input).trim();
     if (!content || loading) return;
     setInput('');
-    const userMsg  = { role: 'user', content };
-    const nextMsgs = [...messages, userMsg];
+    const nextMsgs = [...messages, { role: 'user', content }];
     setMessages(nextMsgs);
     setLoading(true);
     try {
-      // If question isn't about internal DB, try web search first
+      // אם השאלה לא על DB פנימי — מנסה חיפוש אינטרנטי
       const webResult = await searchIfNeeded(content);
       let prompt = systemPrompt;
       if (webResult && (webResult.answer || webResult.results?.length)) {
@@ -135,7 +137,6 @@ export default function AIChat() {
         ].filter(Boolean).join('\n');
         prompt = `${systemPrompt}\n\n=== מידע שנמצא באינטרנט ===\n${lines}`;
       }
-
       const reply = await sendMessage(
         nextMsgs.map(m => ({ role: m.role, content: m.content })),
         prompt,

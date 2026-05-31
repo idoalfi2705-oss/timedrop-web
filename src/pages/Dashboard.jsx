@@ -1,3 +1,6 @@
+// src/pages/Dashboard.jsx
+// דשבורד ראשי למנהל: KPI, גרפי הכנסות/מוצרים, טבלת הזמנות, סטטוס עובדים,
+// התראות חופשה והזמנות ממתינות, ו-Drawers לפירוט.
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -62,6 +65,7 @@ export default function Dashboard() {
     } catch {}
   };
 
+  // מסנן נתוני הכנסות לפי תקופה נבחרת
   const filteredData = useMemo(() => {
     const data = revenueData || [];
     if (period === 'day')  return data.slice(-1);
@@ -73,6 +77,7 @@ export default function Dashboard() {
   const allOrders     = orders || [];
   const pending       = allOrders.filter(o => o.status === 'pending');
   const activeWorkers = (workers || []).filter(w => w.status === 'active');
+  // סכומי תקופה לתצוגה ב-KPI ו-Drawers
   const periodRevenue = filteredData.reduce((s, d) => s + (d.הכנסות || 0), 0);
   const periodProfit  = filteredData.reduce((s, d) => s + (d.רווח   || 0), 0);
   const periodLabel   = { day:'היום', week:'השבוע', month:'החודש', year:'השנה' }[period];

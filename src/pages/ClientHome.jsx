@@ -1,3 +1,6 @@
+// src/pages/ClientHome.jsx
+// דף הבית של לקוח: סטטיסטיקות, מעקב משלוח חי (Leaflet + OSRM),
+// לוח שבועי וטבלת הזמנות אחרונות.
 import React, { useState, useEffect, useRef } from 'react';
 import { Truck, Clock, CreditCard, Star, Phone, MapPin, CheckCircle, Package } from 'lucide-react';
 import { Card, Btn } from '../components/shared/UI';
@@ -19,6 +22,8 @@ function statusBadge(status) {
 
 // ── Live Tracking Map ──────────────────────────────────────────────────────────
 
+// ── LiveTrackingMap — מפת מעקב חי בזמן אמת ────────────────────────────────
+// טוענת Leaflet דינמית, מציירת מסלול OSRM, ומנגישה אנימציית משאית.
 function LiveTrackingMap({ workerLat, workerLon, clientLat, clientLon, workerName, eta }) {
   const mapRef      = useRef(null);
   const mapInstance = useRef(null);
@@ -26,9 +31,9 @@ function LiveTrackingMap({ workerLat, workerLon, clientLat, clientLon, workerNam
   const [liveEta, setLiveEta] = useState(null);
 
   useEffect(() => {
-    if (mapInstance.current) return;
+    if (mapInstance.current) return; // מפה כבר מאותחלת
 
-    // Load Leaflet CSS
+    // טוען Leaflet CSS אם חסר
     if (!document.querySelector('link[href*="leaflet"]')) {
       const link = document.createElement('link');
       link.rel  = 'stylesheet';
@@ -36,79 +41,64 @@ function LiveTrackingMap({ workerLat, workerLon, clientLat, clientLon, workerNam
       document.head.appendChild(link);
     }
 
-    // Load Leaflet JS (may already be loaded)
     const initMap = () => {
       const L   = window.L;
       const map = L.map(mapRef.current, { zoomControl: true, scrollWheelZoom: false });
+      // שכבת OpenStreetMap בסיסית
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap',
       }).addTo(map);
 
-      // Fit bounds between worker and client
-      const bounds = L.latLngBounds(
-        [workerLat, workerLon],
-        [clientLat, clientLon],
+      // מכוון תצוגה בין שני נקודות
+      map.fitBounds(
+        L.latLngBounds([workerLat, workerLon], [clientLat, clientLon]),
+        { padding: [40, 40] },
       );
-      map.fitBounds(bounds, { padding: [40, 40] });
 
+      // סמן אדום על כתובת הלקוח
       const clientIcon = L.divIcon({
         html: `<div style="width:18px;height:18px;background:#ef4444;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>`,
         className: '', iconSize: [28, 28], iconAnchor: [14, 28],
       });
       L.marker([clientLat, clientLon], { icon: clientIcon })
-        .addTo(map)
-        .bindPopup('כתובת המסירה שלך');
+        .addTo(map).bindPopup('כתובת המסירה שלך');
 
       mapInstance.current = map;
 
-      // Fetch OSRM route
+      // מסלול OSRM (חינמי)
       const url = `https://router.project-osrm.org/route/v1/driving/${workerLon},${workerLat};${clientLon},${clientLat}?overview=full&geometries=geojson`;
-      fetch(url)
-        .then(r => r.json())
-        .then(data => {
-          const route    = data.routes && data.routes[0];
+      fetch(url).then(r => r.json()).then(data => {
+          const route = data.routes?.[0];
           if (!route) return;
 
-          const coords      = route.geometry.coordinates; // [lon, lat]
-          const osrmDuration = route.duration; // seconds
+          const coords       = route.geometry.coordinates; // [lon, lat]
+          const osrmDuration = route.duration; // שניות
 
-          // Draw blue polyline
-          const latLngs = coords.map(c => [c[1], c[0]]);
-          L.polyline(latLngs, { color: '#1e7fe0', weight: 4, opacity: 0.8 }).addTo(map);
+          // פוליליין כחול למסלול
+          L.polyline(coords.map(c => [c[1], c[0]]), { color: '#1e7fe0', weight: 4, opacity: 0.8 }).addTo(map);
 
-          // Truck marker starts at 15% along the route
+          const truckIconHtml = `<div style="background:#1e7fe0;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);color:#fff;font-size:13px;font-weight:700;">T</div>`;
+          const makeTruckIcon = () => L.divIcon({ html: truckIconHtml, className: '', iconSize: [36, 36], iconAnchor: [18, 18] });
+
+          // משאית מתחילה ב-15% לאורך המסלול
           let stepIndex = Math.floor(coords.length * 0.15);
-
-          const truckIcon = (step) => L.divIcon({
-            html: `<div style="background:#1e7fe0;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);color:#fff;font-size:13px;font-weight:700;">T</div>`,
-            className: '', iconSize: [36, 36], iconAnchor: [18, 18],
-          });
-
           const truckMarker = L.marker(
             [coords[stepIndex][1], coords[stepIndex][0]],
-            { icon: truckIcon(stepIndex) },
+            { icon: makeTruckIcon() },
           ).addTo(map).bindPopup(workerName ? `${workerName} בדרך אליך` : 'העובד בדרך אליך');
 
-          // Initial ETA
-          const initialRemaining = Math.round(osrmDuration * (1 - stepIndex / coords.length) / 60);
-          setLiveEta(initialRemaining);
+          setLiveEta(Math.round(osrmDuration * (1 - stepIndex / coords.length) / 60));
 
-          // Advance truck every 2 seconds
+          // מזיז את המשאית כל 2 שניות
           intervalRef.current = setInterval(() => {
             stepIndex = Math.min(stepIndex + 1, coords.length - 1);
-            const pos = [coords[stepIndex][1], coords[stepIndex][0]];
-            truckMarker.setLatLng(pos);
-
-            const remainingMinutes = Math.round(osrmDuration * (1 - stepIndex / coords.length) / 60);
-            setLiveEta(remainingMinutes);
-
-            if (stepIndex >= coords.length - 1) {
-              clearInterval(intervalRef.current);
-            }
+            truckMarker.setLatLng([coords[stepIndex][1], coords[stepIndex][0]]);
+            setLiveEta(Math.round(osrmDuration * (1 - stepIndex / coords.length) / 60));
+            if (stepIndex >= coords.length - 1) clearInterval(intervalRef.current);
           }, 2000);
         })
         .catch(() => {
-          // Fallback: simple truck marker without route
+          // fallback: סמן משאית ללא מסלול
           const truckIcon = L.divIcon({
             html: `<div style="background:#1e7fe0;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);color:#fff;font-size:13px;font-weight:700;">T</div>`,
             className: '', iconSize: [36, 36], iconAnchor: [18, 18],
@@ -120,13 +110,13 @@ function LiveTrackingMap({ workerLat, workerLon, clientLat, clientLon, workerNam
         });
     };
 
+    // טוען Leaflet JS אם חסר, אחרת מאתחל מיד
     if (window.L) {
       initMap();
     } else {
       const existing = document.querySelector('script[src*="leaflet"]');
-      if (existing) {
-        existing.addEventListener('load', initMap);
-      } else {
+      if (existing) { existing.addEventListener('load', initMap); }
+      else {
         const script  = document.createElement('script');
         script.src    = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
         script.onload = initMap;
@@ -134,9 +124,7 @@ function LiveTrackingMap({ workerLat, workerLon, clientLat, clientLon, workerNam
       }
     }
 
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [workerLat, workerLon, clientLat, clientLon, workerName]);
 
   return (
@@ -166,11 +154,11 @@ export default function ClientHome() {
   const recent      = list.filter(o => o.status === 'delivered').slice(0, 3);
   const totalSpent  = list.reduce((s, o) => s + (o.total ?? 0), 0);
 
-  // Weekly orders (next 7 days)
-  const today   = new Date(); today.setHours(0, 0, 0, 0);
-  const weekEnd = new Date(today.getTime() + 7 * 86400000);
+  // הזמנות השבוע הקרוב (7 ימים)
+  const todayDate = new Date(); todayDate.setHours(0, 0, 0, 0);
+  const weekEnd   = new Date(todayDate.getTime() + 7 * 86400000);
   const weekOrders = list
-    .filter(o => { const d = new Date(o.date); return d >= today && d <= weekEnd; })
+    .filter(o => { const d = new Date(o.date); return d >= todayDate && d <= weekEnd; })
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   useEffect(() => {

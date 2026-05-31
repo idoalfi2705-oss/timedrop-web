@@ -1,3 +1,5 @@
+// src/pages/Clients.jsx
+// רשימת לקוחות עם חיפוש ופאנל פרטי לקוח נבחר כולל היסטוריית הזמנות.
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Phone, MapPin, FileText, Plus } from 'lucide-react';
@@ -21,8 +23,13 @@ export default function Clients() {
     [selected?.id]
   );
 
+  // מאחד לקוחות מה-API עם לקוחות שנוספו מקומית
   const clients = [...(apiClients || []), ...extra];
-  const list = clients.filter(c => c.name?.includes(search) || c.contact?.includes(search) || c.area?.includes(search) || c.bizName?.includes(search));
+  // מסנן לפי חיפוש חופשי בשם / איש קשר / אזור / שם עסק
+  const list = clients.filter(c =>
+    c.name?.includes(search) || c.contact?.includes(search) ||
+    c.area?.includes(search) || c.bizName?.includes(search)
+  );
 
   return (
     <div className="clients-page animate-fade">
