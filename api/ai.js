@@ -25,19 +25,19 @@ module.exports = async function handler(req, res) {
       parts: [{ text: m.content }],
     }));
 
+  // Prepend system prompt as first user message (most compatible approach)
+  const allContents = systemPrompt
+    ? [{ role: 'user', parts: [{ text: systemPrompt }] }, { role: 'model', parts: [{ text: 'הבנתי, אשמח לעזור.' }] }, ...contents]
+    : contents;
+
   const body = {
-    contents,
+    contents: allContents,
     generationConfig: { maxOutputTokens: 1024, temperature: 0.7 },
   };
 
-  // Add system instruction if provided
-  if (systemPrompt) {
-    body.systemInstruction = { parts: [{ text: systemPrompt }] };
-  }
-
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
