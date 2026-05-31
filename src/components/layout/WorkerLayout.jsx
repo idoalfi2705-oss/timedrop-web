@@ -29,10 +29,13 @@ export default function WorkerLayout() {
       {/* Sidebar */}
       <aside className="worker-sidebar">
         <div className="ws-logo">
-          <div className="ws-logo-icon"><Truck size={20}/></div>
+          <div className="ws-logo-icon">
+            <Truck size={22} strokeWidth={1.8}/>
+            <Clock size={11} className="ws-logo-clock"/>
+          </div>
           {!collapsed && <span>TimeDrop</span>}
           <button className="ws-collapse" onClick={() => setCollapsed(c => !c)}>
-            <ChevronRight size={15} className={collapsed ? 'rotated' : ''}/>
+            <ChevronRight size={16} className={collapsed ? 'rotated' : ''}/>
           </button>
         </div>
 
