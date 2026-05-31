@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bot, X, Send, Sparkles, RotateCcw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { ordersAPI, workersAPI, clientsAPI, deliveriesAPI } from '../../utils/api';
+import { ordersAPI, workersAPI, clientsAPI, deliveriesAPI, workerStatsAPI, employerContactAPI, pickupsAPI, clientProfileAPI } from '../../utils/api';
 import { sendMessage, buildSystemPrompt, getProactiveAlerts } from '../../utils/aiAPI';
 import './AIChat.css';
 
 const QUICK_CHIPS = {
   employer: ['אילו פריטים פספסתי?', 'מה הסטטוס של העסק?', 'אילו הזמנות ממתינות?', 'לקוחות עם חוב פתוח'],
-  worker:   ['מה המשלוחים שלי היום?', 'איך להגיע ללקוח?', 'דווח על שיבוש'],
-  client:   ['מה סטטוס ההזמנה שלי?', 'רוצה לבצע הזמנה חדשה', 'מתי יגיע המשלוח?'],
+  worker:   ['כמה משלוחים פתוחים לי?', 'כמה שעות עבדתי החודש?', 'כמה ימי חופשה יש לי?', 'טלפונים של לקוחות היום'],
+  client:   ['מה סטטוס ההזמנה שלי?', 'כמה חוב יש לי?', 'מתי יגיע המשלוח?'],
 };
 
 // Render structured alert lines with bold labels
@@ -67,11 +67,19 @@ export default function AIChat() {
           ]);
           setContextData({ orders, workers, clients });
         } else if (role === 'worker') {
-          const deliveries = await deliveriesAPI.getToday();
-          setContextData({ deliveries });
+          const [deliveries, workerStats, employerContact, pickups] = await Promise.all([
+            deliveriesAPI.getToday(),
+            workerStatsAPI.getMyStats(),
+            employerContactAPI.get(),
+            pickupsAPI.getToday(),
+          ]);
+          setContextData({ deliveries, workerStats, employerContact, pickups });
         } else {
-          const orders = await ordersAPI.getAll();
-          setContextData({ orders });
+          const [orders, clientProfile] = await Promise.all([
+            ordersAPI.getAll(),
+            clientProfileAPI.getMyProfile(),
+          ]);
+          setContextData({ orders, clientProfile });
         }
       } catch { /* use empty context */ }
     }

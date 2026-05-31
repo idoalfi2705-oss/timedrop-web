@@ -5,6 +5,7 @@ import {
   mockClients, mockWorkers, mockOrders, mockWarehouses, mockStock,
   mockItems, mockDeliveries, mockLeaveRequests,
   mockKpi, mockRevenueData, mockProductsData,
+  mockWorkerMonthStats, mockEmployerContact, mockTodayPickups, mockClientProfile,
 } from './mockData';
 
 const BASE_URL   = process.env.REACT_APP_API_URL;
@@ -364,6 +365,72 @@ export const deliveriesAPI = {
       await fPost(`/api/resource/Delivery Note/${encodeURIComponent(id)}/submit`, {});
     }
     return { success: true };
+  },
+};
+
+// ── Worker Extra Data ─────────────────────────────────────────────────────────
+
+export const workerStatsAPI = {
+  getMyStats: async () => {
+    try {
+      const data = await fGet('/api/resource/Employee/me', {
+        fields: JSON.stringify(['attendance_device_id','total_leaves_allocated','leaves_taken']),
+      });
+      const e = data.data || {};
+      return {
+        hoursWorked:           e.hoursWorked           || mockWorkerMonthStats.hoursWorked,
+        vacationDaysRemaining: e.vacationDaysRemaining  || mockWorkerMonthStats.vacationDaysRemaining,
+        vacationDaysUsed:      e.vacationDaysUsed       || mockWorkerMonthStats.vacationDaysUsed,
+      };
+    } catch { return mockWorkerMonthStats; }
+  },
+};
+
+export const employerContactAPI = {
+  get: async () => {
+    try {
+      const data = await fGet('/api/resource/Company/TimeDrop', {
+        fields: JSON.stringify(['company_name','phone_no','email']),
+      });
+      const c = data.data || {};
+      return { name: c.company_name || mockEmployerContact.name, phone: c.phone_no || mockEmployerContact.phone, email: c.email || mockEmployerContact.email };
+    } catch { return mockEmployerContact; }
+  },
+};
+
+export const pickupsAPI = {
+  getToday: async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const data = await fGet('/api/resource/Purchase Receipt', {
+        fields:  JSON.stringify(['name','supplier','set_warehouse','posting_date']),
+        filters: JSON.stringify([['posting_date','=',today]]),
+        limit:   20,
+      });
+      return (data.data || []).map(p => ({
+        id:         p.name,
+        name:       p.supplier,
+        address:    p.set_warehouse || '',
+        pickupTime: '',
+      }));
+    } catch { return mockTodayPickups; }
+  },
+};
+
+export const clientProfileAPI = {
+  getMyProfile: async () => {
+    try {
+      const data = await fGet('/api/resource/Customer/me', {
+        fields: JSON.stringify(['customer_name','mobile_no','outstanding_amount','credit_limit']),
+      });
+      const c = data.data || {};
+      return {
+        name:        c.customer_name || mockClientProfile.name,
+        phone:       c.mobile_no    || mockClientProfile.phone,
+        debt:        c.outstanding_amount || mockClientProfile.debt,
+        creditLimit: c.credit_limit || mockClientProfile.creditLimit,
+      };
+    } catch { return mockClientProfile; }
   },
 };
 

@@ -67,10 +67,39 @@ export const mockItems = [
 ];
 
 export const mockDeliveries = [
-  { id:'DN-0001', clientName:'מסעדת הגליל',  address:'רחוב הרצל 10, תל אביב',          date:new Date().toISOString().split('T')[0], status:'pending',   total:1250 },
-  { id:'DN-0002', clientName:'קפה תמר',      address:'שדרות רוטשילד 5, תל אביב',       date:new Date().toISOString().split('T')[0], status:'pending',   total:875  },
-  { id:'DN-0003', clientName:'סופרמרקט שלי', address:'רחוב אבן גבירול 20, רמת גן',     date:new Date().toISOString().split('T')[0], status:'delivered', total:3200 },
+  { id:'DN-0001', clientName:'מסעדת הגליל',  clientPhone:'054-1234567', address:'רחוב הרצל 10, תל אביב',        date:new Date().toISOString().split('T')[0], status:'pending',   total:1250, arrivalTime:'09:30', drivingMinutes:20, items:[{name:'לחם כפרי',qty:10},{name:'שמן זית',qty:5}] },
+  { id:'DN-0002', clientName:'קפה תמר',      clientPhone:'052-9876543', address:'שדרות רוטשילד 5, תל אביב',     date:new Date().toISOString().split('T')[0], status:'pending',   total:875,  arrivalTime:'10:15', drivingMinutes:15, items:[{name:'קפה',qty:20},{name:'סוכר',qty:5}] },
+  { id:'DN-0003', clientName:'סופרמרקט שלי', clientPhone:'053-7777777', address:'רחוב אבן גבירול 20, רמת גן',   date:new Date().toISOString().split('T')[0], status:'delivered', total:3200, arrivalTime:'11:00', drivingMinutes:30, items:[{name:'שמן',qty:50},{name:'קמח',qty:30}] },
 ];
+
+export const mockWorkerMonthStats = {
+  hoursWorked:           84,
+  vacationDaysRemaining: 12,
+  vacationDaysUsed:       3,
+};
+
+export const mockEmployerContact = {
+  name:    'דוד כהן',
+  company: 'TimeDrop',
+  phone:   '052-1234567',
+  email:   'david@timedrop.co.il',
+};
+
+export const mockTodayPickups = [
+  { id:'WH001', name:'מחסן מרכזי', address:'רחוב הברזל 14, תל אביב',      pickupTime:'07:45' },
+  { id:'WH002', name:'מחסן צפון',  address:'רחוב גיסין 10, פתח תקווה',    pickupTime:'08:30' },
+];
+
+export const mockClientProfile = {
+  id:              'C001',
+  name:            'מסעדת הגליל',
+  contact:         'דוד לוי',
+  phone:           '054-1234567',
+  debt:            2500,
+  creditLimit:     10000,
+  vacationDays:    0,
+  nextDelivery:    { date: new Date().toISOString().split('T')[0], time: '09:30', id: 'DN-0001' },
+};
 
 export const mockLeaveRequests = [
   { id:'LV001', user:{ name:'רחל מזרחי' }, type:'SICK', date:'2026-06-01' },
