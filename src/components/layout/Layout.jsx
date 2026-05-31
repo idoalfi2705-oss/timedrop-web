@@ -5,6 +5,7 @@ import Sidebar from './Sidebar';
 import Notifications from '../shared/Notifications';
 import ProfileEditor from '../shared/ProfileEditor';
 import Chat from '../shared/Chat';
+import AIChat from '../shared/AIChat';
 import { Search } from 'lucide-react';
 import './layouts.css';
 
@@ -42,6 +43,7 @@ export default function Layout() {
 
       {showProfile && <ProfileEditor onClose={() => setShowProfile(false)} />}
       <Chat />
+      <AIChat />
     </div>
   );
 }

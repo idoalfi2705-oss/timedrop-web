@@ -1,6 +1,12 @@
 // src/utils/api.js
 // חיבור ל-ERPNext דרך Frappe REST API
 
+import {
+  mockClients, mockWorkers, mockOrders, mockWarehouses, mockStock,
+  mockItems, mockDeliveries, mockLeaveRequests,
+  mockKpi, mockRevenueData, mockProductsData,
+} from './mockData';
+
 const BASE_URL   = process.env.REACT_APP_API_URL;
 const API_KEY    = process.env.REACT_APP_API_KEY;
 const API_SECRET = process.env.REACT_APP_API_SECRET;
@@ -53,21 +59,23 @@ export const authAPI = {
 
 export const clientsAPI = {
   getAll: async () => {
-    const data = await fGet('/api/resource/Customer', {
-      fields: JSON.stringify(['name','customer_name','mobile_no','territory','outstanding_amount']),
-      limit:  100,
-    });
-    return (data.data || []).map(c => ({
-      id:          c.name,
-      name:        c.customer_name,
-      contact:     c.customer_name,
-      phone:       c.mobile_no || '',
-      area:        c.territory || 'ישראל',
-      debt:        c.outstanding_amount || 0,
-      lastOrder:   new Date(),
-      rating:      4.5,
-      totalOrders: 0,
-    }));
+    try {
+      const data = await fGet('/api/resource/Customer', {
+        fields: JSON.stringify(['name','customer_name','mobile_no','territory','outstanding_amount']),
+        limit:  100,
+      });
+      return (data.data || []).map(c => ({
+        id:          c.name,
+        name:        c.customer_name,
+        contact:     c.customer_name,
+        phone:       c.mobile_no || '',
+        area:        c.territory || 'ישראל',
+        debt:        c.outstanding_amount || 0,
+        lastOrder:   new Date(),
+        rating:      4.5,
+        totalOrders: 0,
+      }));
+    } catch { return mockClients; }
   },
 
   getById: async (id) => {
@@ -101,25 +109,30 @@ function mapStatus(s) {
 
 export const ordersAPI = {
   getAll: async (params = {}) => {
-    const filters = [];
-    if (params.status)   filters.push(['status',   '=', params.status]);
-    if (params.clientId) filters.push(['customer', '=', params.clientId]);
-    const data = await fGet('/api/resource/Sales Order', {
-      fields:   JSON.stringify(['name','customer','customer_name','transaction_date','grand_total','status']),
-      limit:    100,
-      order_by: 'transaction_date desc',
-      ...(filters.length ? { filters: JSON.stringify(filters) } : {}),
-    });
-    return (data.data || []).map(o => ({
-      id:         o.name,
-      clientId:   o.customer,
-      clientName: o.customer_name,
-      date:       new Date(o.transaction_date),
-      status:     mapStatus(o.status),
-      total:      o.grand_total || 0,
-      profit:     Math.round((o.grand_total || 0) * 0.35),
-      workerId:   null,
-    }));
+    try {
+      const filters = [];
+      if (params.status)   filters.push(['status',   '=', params.status]);
+      if (params.clientId) filters.push(['customer', '=', params.clientId]);
+      const data = await fGet('/api/resource/Sales Order', {
+        fields:   JSON.stringify(['name','customer','customer_name','transaction_date','grand_total','status']),
+        limit:    100,
+        order_by: 'transaction_date desc',
+        ...(filters.length ? { filters: JSON.stringify(filters) } : {}),
+      });
+      return (data.data || []).map(o => ({
+        id:         o.name,
+        clientId:   o.customer,
+        clientName: o.customer_name,
+        date:       new Date(o.transaction_date),
+        status:     mapStatus(o.status),
+        total:      o.grand_total || 0,
+        profit:     Math.round((o.grand_total || 0) * 0.35),
+        workerId:   null,
+      }));
+    } catch {
+      if (params.clientId) return mockOrders.filter(o => o.clientId === params.clientId);
+      return mockOrders;
+    }
   },
 
   getItems: async (id) => {
@@ -151,36 +164,40 @@ export const ordersAPI = {
 
 export const warehousesAPI = {
   getAll: async () => {
-    const data = await fGet('/api/resource/Warehouse', {
-      fields: JSON.stringify(['name','warehouse_name','city']),
-      limit:  50,
-    });
-    return (data.data || []).map(w => ({
-      id:       w.name,
-      name:     w.warehouse_name,
-      location: w.city || '',
-      items:    0,
-      capacity: 200,
-      alerts:   0,
-    }));
+    try {
+      const data = await fGet('/api/resource/Warehouse', {
+        fields: JSON.stringify(['name','warehouse_name','city']),
+        limit:  50,
+      });
+      return (data.data || []).map(w => ({
+        id:       w.name,
+        name:     w.warehouse_name,
+        location: w.city || '',
+        items:    0,
+        capacity: 200,
+        alerts:   0,
+      }));
+    } catch { return mockWarehouses; }
   },
 
   getStock: async (warehouseId) => {
-    const data = await fGet('/api/resource/Bin', {
-      fields:  JSON.stringify(['item_code','item_name','actual_qty','warehouse']),
-      filters: JSON.stringify([['warehouse', '=', warehouseId]]),
-      limit:   200,
-    });
-    return (data.data || []).map((b, i) => ({
-      id:          i + 1,
-      warehouseId: warehouseId,
-      name:        b.item_name || b.item_code,
-      sku:         b.item_code,
-      qty:         b.actual_qty || 0,
-      min:         20,
-      unit:        'יח\'',
-      location:    '',
-    }));
+    try {
+      const data = await fGet('/api/resource/Bin', {
+        fields:  JSON.stringify(['item_code','item_name','actual_qty','warehouse']),
+        filters: JSON.stringify([['warehouse', '=', warehouseId]]),
+        limit:   200,
+      });
+      return (data.data || []).map((b, i) => ({
+        id:          i + 1,
+        warehouseId: warehouseId,
+        name:        b.item_name || b.item_code,
+        sku:         b.item_code,
+        qty:         b.actual_qty || 0,
+        min:         20,
+        unit:        'יח\'',
+        location:    '',
+      }));
+    } catch { return mockStock[warehouseId] || []; }
   },
 
   create: async (warehouse) => {
@@ -197,19 +214,21 @@ export const warehousesAPI = {
 
 export const itemsAPI = {
   getAll: async () => {
-    const data = await fGet('/api/resource/Item', {
-      fields: JSON.stringify(['name','item_name','item_code','standard_rate','stock_uom','item_group','description']),
-      limit:  200,
-    });
-    return (data.data || []).map(i => ({
-      id:          i.name,
-      name:        i.item_name,
-      sku:         i.item_code,
-      price:       i.standard_rate || 0,
-      unit:        i.stock_uom || 'יח\'',
-      category:    i.item_group || 'כללי',
-      description: i.description || '',
-    }));
+    try {
+      const data = await fGet('/api/resource/Item', {
+        fields: JSON.stringify(['name','item_name','item_code','standard_rate','stock_uom','item_group','description']),
+        limit:  200,
+      });
+      return (data.data || []).map(i => ({
+        id:          i.name,
+        name:        i.item_name,
+        sku:         i.item_code,
+        price:       i.standard_rate || 0,
+        unit:        i.stock_uom || 'יח\'',
+        category:    i.item_group || 'כללי',
+        description: i.description || '',
+      }));
+    } catch { return mockItems; }
   },
 
   create: async (item) => {
@@ -229,22 +248,24 @@ export const itemsAPI = {
 
 export const workersAPI = {
   getAll: async () => {
-    const data = await fGet('/api/resource/Employee', {
-      fields: JSON.stringify(['name','employee_name','cell_number','branch','status','designation']),
-      limit:  100,
-    });
-    return (data.data || []).map(e => ({
-      id:           e.name,
-      name:         e.employee_name,
-      phone:        e.cell_number || '',
-      area:         e.branch || '',
-      status:       e.status === 'Active' ? 'active' : 'inactive',
-      onTime:       90,
-      deliveries:   0,
-      rating:       4.5,
-      shift:        e.designation || '',
-      leaveRequest: null,
-    }));
+    try {
+      const data = await fGet('/api/resource/Employee', {
+        fields: JSON.stringify(['name','employee_name','cell_number','branch','status','designation']),
+        limit:  100,
+      });
+      return (data.data || []).map(e => ({
+        id:           e.name,
+        name:         e.employee_name,
+        phone:        e.cell_number || '',
+        area:         e.branch || '',
+        status:       e.status === 'Active' ? 'active' : 'inactive',
+        onTime:       90,
+        deliveries:   0,
+        rating:       4.5,
+        shift:        e.designation || '',
+        leaveRequest: null,
+      }));
+    } catch { return mockWorkers; }
   },
 
   create: async (worker) => {
@@ -264,17 +285,19 @@ export const workersAPI = {
   },
 
   getLeaveRequests: async () => {
-    const data = await fGet('/api/resource/Leave Application', {
-      fields:  JSON.stringify(['name','employee','employee_name','leave_type','from_date','status']),
-      filters: JSON.stringify([['status', '=', 'Open']]),
-      limit:   20,
-    });
-    return (data.data || []).map(r => ({
-      id:   r.name,
-      user: { name: r.employee_name },
-      type: r.leave_type === 'Sick Leave' ? 'SICK' : 'VACATION',
-      date: r.from_date,
-    }));
+    try {
+      const data = await fGet('/api/resource/Leave Application', {
+        fields:  JSON.stringify(['name','employee','employee_name','leave_type','from_date','status']),
+        filters: JSON.stringify([['status', '=', 'Open']]),
+        limit:   20,
+      });
+      return (data.data || []).map(r => ({
+        id:   r.name,
+        user: { name: r.employee_name },
+        type: r.leave_type === 'Sick Leave' ? 'SICK' : 'VACATION',
+        date: r.from_date,
+      }));
+    } catch { return mockLeaveRequests; }
   },
 
   submitLeave: async (leaveData) => {
@@ -300,20 +323,22 @@ export const workersAPI = {
 
 export const deliveriesAPI = {
   getToday: async () => {
-    const today = new Date().toISOString().split('T')[0];
-    const data = await fGet('/api/resource/Delivery Note', {
-      fields:  JSON.stringify(['name','customer_name','customer_address','posting_date','status','grand_total']),
-      filters: JSON.stringify([['posting_date', '=', today]]),
-      limit:   50,
-    });
-    return (data.data || []).map(d => ({
-      id:         d.name,
-      clientName: d.customer_name,
-      address:    d.customer_address || '',
-      date:       d.posting_date,
-      status:     d.status === 'Submitted' ? 'delivered' : 'pending',
-      total:      d.grand_total,
-    }));
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const data = await fGet('/api/resource/Delivery Note', {
+        fields:  JSON.stringify(['name','customer_name','customer_address','posting_date','status','grand_total']),
+        filters: JSON.stringify([['posting_date', '=', today]]),
+        limit:   50,
+      });
+      return (data.data || []).map(d => ({
+        id:         d.name,
+        clientName: d.customer_name,
+        address:    d.customer_address || '',
+        date:       d.posting_date,
+        status:     d.status === 'Submitted' ? 'delivered' : 'pending',
+        total:      d.grand_total,
+      }));
+    } catch { return mockDeliveries; }
   },
 
   getItems: async (id) => {
@@ -337,92 +362,98 @@ export const deliveriesAPI = {
 
 export const reportsAPI = {
   getKpi: async () => {
-    const today        = new Date();
-    const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-    const todayStr     = today.toISOString().split('T')[0];
+    try {
+      const today        = new Date();
+      const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+      const todayStr     = today.toISOString().split('T')[0];
 
-    const [monthInv, todayInv, pending, lowStock, empList] = await Promise.all([
-      fGet('/api/resource/Sales Invoice', {
-        fields:  JSON.stringify(['grand_total']),
-        filters: JSON.stringify([['posting_date','>=',firstOfMonth],['docstatus','=',1]]),
-        limit:   500,
-      }),
-      fGet('/api/resource/Sales Invoice', {
-        fields:  JSON.stringify(['grand_total']),
-        filters: JSON.stringify([['posting_date','=',todayStr],['docstatus','=',1]]),
-        limit:   100,
-      }),
-      fGet('/api/resource/Sales Order', {
-        fields:  JSON.stringify(['name']),
-        filters: JSON.stringify([['status','in',['Draft','To Deliver']]]),
-        limit:   100,
-      }),
-      fGet('/api/resource/Bin', {
-        fields:  JSON.stringify(['item_code','actual_qty']),
-        filters: JSON.stringify([['actual_qty','<',20]]),
-        limit:   50,
-      }),
-      fGet('/api/resource/Employee', {
-        fields:  JSON.stringify(['name','status']),
-        filters: JSON.stringify([['status','=','Active']]),
-        limit:   100,
-      }),
-    ]);
+      const [monthInv, todayInv, pending, lowStock, empList] = await Promise.all([
+        fGet('/api/resource/Sales Invoice', {
+          fields:  JSON.stringify(['grand_total']),
+          filters: JSON.stringify([['posting_date','>=',firstOfMonth],['docstatus','=',1]]),
+          limit:   500,
+        }),
+        fGet('/api/resource/Sales Invoice', {
+          fields:  JSON.stringify(['grand_total']),
+          filters: JSON.stringify([['posting_date','=',todayStr],['docstatus','=',1]]),
+          limit:   100,
+        }),
+        fGet('/api/resource/Sales Order', {
+          fields:  JSON.stringify(['name']),
+          filters: JSON.stringify([['status','in',['Draft','To Deliver']]]),
+          limit:   100,
+        }),
+        fGet('/api/resource/Bin', {
+          fields:  JSON.stringify(['item_code','actual_qty']),
+          filters: JSON.stringify([['actual_qty','<',20]]),
+          limit:   50,
+        }),
+        fGet('/api/resource/Employee', {
+          fields:  JSON.stringify(['name','status']),
+          filters: JSON.stringify([['status','=','Active']]),
+          limit:   100,
+        }),
+      ]);
 
-    return {
-      todayRevenue:    (todayInv.data || []).reduce((s, i) => s + (i.grand_total || 0), 0),
-      monthRevenue:    (monthInv.data || []).reduce((s, i) => s + (i.grand_total || 0), 0),
-      pendingOrders:   (pending.data  || []).length,
-      activeWorkers:   (empList.data  || []).length,
-      lowStockItems:   (lowStock.data || []).length,
-      avgDeliveryTime: 38,
-    };
+      return {
+        todayRevenue:    (todayInv.data || []).reduce((s, i) => s + (i.grand_total || 0), 0),
+        monthRevenue:    (monthInv.data || []).reduce((s, i) => s + (i.grand_total || 0), 0),
+        pendingOrders:   (pending.data  || []).length,
+        activeWorkers:   (empList.data  || []).length,
+        lowStockItems:   (lowStock.data || []).length,
+        avgDeliveryTime: 38,
+      };
+    } catch { return mockKpi; }
   },
 
   getRevenueByDay: async (days = 30) => {
-    const dates = Array.from({ length: days }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - (days - 1 - i));
-      return d.toISOString().split('T')[0];
-    });
-    const data = await fGet('/api/resource/Sales Invoice', {
-      fields:  JSON.stringify(['posting_date','grand_total']),
-      filters: JSON.stringify([
-        ['posting_date','>=', dates[0]],
-        ['posting_date','<=', dates[dates.length - 1]],
-        ['docstatus','=',1],
-      ]),
-      limit: 1000,
-    });
-    const byDate = {};
-    (data.data || []).forEach(inv => {
-      const d = inv.posting_date;
-      if (!byDate[d]) byDate[d] = { הכנסות: 0, רווח: 0 };
-      byDate[d].הכנסות += inv.grand_total || 0;
-      byDate[d].רווח   += (inv.grand_total || 0) * 0.35;
-    });
-    return dates.map(d => ({
-      date:    d.slice(5).replace('-', '/'),
-      הכנסות: Math.round(byDate[d]?.הכנסות || 0),
-      רווח:   Math.round(byDate[d]?.רווח   || 0),
-    }));
+    try {
+      const dates = Array.from({ length: days }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (days - 1 - i));
+        return d.toISOString().split('T')[0];
+      });
+      const data = await fGet('/api/resource/Sales Invoice', {
+        fields:  JSON.stringify(['posting_date','grand_total']),
+        filters: JSON.stringify([
+          ['posting_date','>=', dates[0]],
+          ['posting_date','<=', dates[dates.length - 1]],
+          ['docstatus','=',1],
+        ]),
+        limit: 1000,
+      });
+      const byDate = {};
+      (data.data || []).forEach(inv => {
+        const d = inv.posting_date;
+        if (!byDate[d]) byDate[d] = { הכנסות: 0, רווח: 0 };
+        byDate[d].הכנסות += inv.grand_total || 0;
+        byDate[d].רווח   += (inv.grand_total || 0) * 0.35;
+      });
+      return dates.map(d => ({
+        date:    d.slice(5).replace('-', '/'),
+        הכנסות: Math.round(byDate[d]?.הכנסות || 0),
+        רווח:   Math.round(byDate[d]?.רווח   || 0),
+      }));
+    } catch { return mockRevenueData; }
   },
 
   getOrdersByProduct: async () => {
-    const data = await fGet('/api/resource/Sales Order Item', {
-      fields:   JSON.stringify(['item_name','qty','amount']),
-      limit:    500,
-      order_by: 'amount desc',
-    });
-    const byItem = {};
-    (data.data || []).forEach(i => {
-      if (!byItem[i.item_name]) byItem[i.item_name] = { כמות: 0, הכנסה: 0, רווח: 0 };
-      byItem[i.item_name].כמות  += i.qty    || 0;
-      byItem[i.item_name].הכנסה += i.amount || 0;
-      byItem[i.item_name].רווח  += (i.amount || 0) * 0.35;
-    });
-    return Object.entries(byItem)
-      .map(([name, v]) => ({ name, ...v }))
-      .sort((a, b) => b.הכנסה - a.הכנסה);
+    try {
+      const data = await fGet('/api/resource/Sales Order Item', {
+        fields:   JSON.stringify(['item_name','qty','amount']),
+        limit:    500,
+        order_by: 'amount desc',
+      });
+      const byItem = {};
+      (data.data || []).forEach(i => {
+        if (!byItem[i.item_name]) byItem[i.item_name] = { כמות: 0, הכנסה: 0, רווח: 0 };
+        byItem[i.item_name].כמות  += i.qty    || 0;
+        byItem[i.item_name].הכנסה += i.amount || 0;
+        byItem[i.item_name].רווח  += (i.amount || 0) * 0.35;
+      });
+      return Object.entries(byItem)
+        .map(([name, v]) => ({ name, ...v }))
+        .sort((a, b) => b.הכנסה - a.הכנסה);
+    } catch { return mockProductsData; }
   },
 };

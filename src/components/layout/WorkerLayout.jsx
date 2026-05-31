@@ -8,6 +8,7 @@ import {
 import Notifications from '../shared/Notifications';
 import ProfileEditor from '../shared/ProfileEditor';
 import Chat from '../shared/Chat';
+import AIChat from '../shared/AIChat';
 import './layouts.css';
 
 const NAV = [
@@ -97,6 +98,7 @@ export default function WorkerLayout() {
 
       {showProfile && <ProfileEditor onClose={() => setShowProfile(false)} />}
       <Chat />
+      <AIChat />
     </div>
   );
 }

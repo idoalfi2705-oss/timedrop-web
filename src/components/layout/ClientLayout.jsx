@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { LayoutDashboard, FileText, ShoppingCart, LogOut, Truck, Clock, Settings } from 'lucide-react';
 import ProfileEditor from '../shared/ProfileEditor';
 import Chat from '../shared/Chat';
+import AIChat from '../shared/AIChat';
 import './layouts.css';
 
 const NAV = [
@@ -50,6 +51,7 @@ export default function ClientLayout() {
       </main>
       {showProfile && <ProfileEditor onClose={() => setShowProfile(false)} />}
       <Chat />
+      <AIChat />
     </div>
   );
 }
