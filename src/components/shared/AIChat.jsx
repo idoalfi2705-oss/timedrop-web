@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bot, X, Send, Sparkles, RotateCcw } from 'lucide-react';
+import { Bot, X, Send, Sparkles, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ordersAPI, workersAPI, clientsAPI, deliveriesAPI, workerStatsAPI, employerContactAPI, pickupsAPI, clientProfileAPI } from '../../utils/api';
 import { sendMessage, buildSystemPrompt, getProactiveAlerts } from '../../utils/aiAPI';
@@ -169,7 +169,7 @@ export default function AIChat() {
             <div className="ai-header-actions">
               {messages.length > 0 && (
                 <button className="ai-panel-close" onClick={clearMessages} title="חזור לשאלות">
-                  <RotateCcw size={14}/>
+                  <ArrowRight size={16}/>
                 </button>
               )}
               <button className="ai-panel-close" onClick={() => setOpen(false)}><X size={16}/></button>
