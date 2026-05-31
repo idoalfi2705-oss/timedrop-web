@@ -163,3 +163,57 @@
   margin-bottom: 10px; direction: rtl; outline: none;
 }
 .ws-report-input:focus { border-color: var(--blue-400); }
+
+/* Sections */
+.ws-section { display: flex; flex-direction: column; gap: 10px; }
+
+.ws-section-label {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 1rem; font-weight: 700; color: var(--gray-900);
+  padding-bottom: 4px;
+}
+.ws-section-count {
+  background: var(--gray-100); color: var(--gray-600);
+  padding: 2px 10px; border-radius: 99px;
+  font-size: 0.8rem; font-weight: 700;
+}
+
+/* Pickup cards */
+.ws-pickup-card {
+  background: #fff;
+  border: 2px solid #f59e0b;
+  border-left: 4px solid #f59e0b;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--transition), opacity var(--transition);
+}
+.ws-pickup-card.collected { border-color: var(--success); opacity: 0.75; }
+
+.ws-pickup-card-header {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 16px 10px;
+}
+
+.ws-pickup-num {
+  background: #f59e0b !important;
+}
+
+.ws-pickup-meta {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  font-size: 0.78rem; color: var(--gray-400);
+  margin-top: 4px;
+}
+.ws-pickup-meta span { display: flex; align-items: center; gap: 4px; }
+
+/* Collected button */
+.ws-collected-btn {
+  display: flex; align-items: center; gap: 6px;
+  width: 100%; justify-content: center;
+  padding: 10px; border-radius: var(--radius-sm);
+  border: 2px solid #f59e0b;
+  background: #fef3c7; color: #92400e;
+  font-family: var(--font-main); font-size: 0.875rem; font-weight: 600;
+  cursor: pointer; transition: all var(--transition);
+}
+.ws-collected-btn:hover { background: #fde68a; border-color: #d97706; }
+.ws-collected-btn.collected { background: var(--success-light); border-color: var(--success); color: #065f46; }

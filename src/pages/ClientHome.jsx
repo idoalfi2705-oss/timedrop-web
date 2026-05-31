@@ -9,35 +9,151 @@ import './ClientHome.css';
 
 const fmt = n => '₪' + n.toLocaleString('he-IL');
 
-function DeliveryMap({ lat, lng }) {
-  const mapRef = useRef(null);
+const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+
+function statusBadge(status) {
+  if (status === 'on_the_way') return <span className="ch-status-badge ch-status-onway">בדרך</span>;
+  if (status === 'delivered')  return <span className="ch-status-badge ch-status-delivered">נמסר</span>;
+  return <span className="ch-status-badge ch-status-pending">ממתין</span>;
+}
+
+// ── Live Tracking Map ──────────────────────────────────────────────────────────
+
+function LiveTrackingMap({ workerLat, workerLon, clientLat, clientLon, workerName, eta }) {
+  const mapRef      = useRef(null);
   const mapInstance = useRef(null);
+  const intervalRef = useRef(null);
+  const [liveEta, setLiveEta] = useState(null);
 
   useEffect(() => {
     if (mapInstance.current) return;
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(link);
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.onload = () => {
-      const L = window.L;
-      const map = L.map(mapRef.current, { zoomControl: true, scrollWheelZoom: false });
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
-      map.setView([lat, lng], 14);
-      const truckIcon = L.divIcon({
-        html: `<div style="background:#1e7fe0;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);font-size:18px;">🚛</div>`,
-        className: '', iconSize: [36, 36], iconAnchor: [18, 18],
-      });
-      L.marker([lat, lng], { icon: truckIcon }).addTo(map).bindPopup('העובד נמצא כאן').openPopup();
-      mapInstance.current = map;
-    };
-    document.head.appendChild(script);
-  }, [lat, lng]);
 
-  return <div ref={mapRef} className="ch-map-real" />;
+    // Load Leaflet CSS
+    if (!document.querySelector('link[href*="leaflet"]')) {
+      const link = document.createElement('link');
+      link.rel  = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+
+    // Load Leaflet JS (may already be loaded)
+    const initMap = () => {
+      const L   = window.L;
+      const map = L.map(mapRef.current, { zoomControl: true, scrollWheelZoom: false });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+      }).addTo(map);
+
+      // Fit bounds between worker and client
+      const bounds = L.latLngBounds(
+        [workerLat, workerLon],
+        [clientLat, clientLon],
+      );
+      map.fitBounds(bounds, { padding: [40, 40] });
+
+      // Client pin (red 📍)
+      const clientIcon = L.divIcon({
+        html: `<div style="font-size:28px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));">📍</div>`,
+        className: '', iconSize: [28, 28], iconAnchor: [14, 28],
+      });
+      L.marker([clientLat, clientLon], { icon: clientIcon })
+        .addTo(map)
+        .bindPopup('כתובת המסירה שלך');
+
+      mapInstance.current = map;
+
+      // Fetch OSRM route
+      const url = `https://router.project-osrm.org/route/v1/driving/${workerLon},${workerLat};${clientLon},${clientLat}?overview=full&geometries=geojson`;
+      fetch(url)
+        .then(r => r.json())
+        .then(data => {
+          const route    = data.routes && data.routes[0];
+          if (!route) return;
+
+          const coords      = route.geometry.coordinates; // [lon, lat]
+          const osrmDuration = route.duration; // seconds
+
+          // Draw blue polyline
+          const latLngs = coords.map(c => [c[1], c[0]]);
+          L.polyline(latLngs, { color: '#1e7fe0', weight: 4, opacity: 0.8 }).addTo(map);
+
+          // Truck marker starts at 15% along the route
+          let stepIndex = Math.floor(coords.length * 0.15);
+
+          const truckIcon = (step) => L.divIcon({
+            html: `<div style="background:#1e7fe0;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);font-size:18px;">🚛</div>`,
+            className: '', iconSize: [36, 36], iconAnchor: [18, 18],
+          });
+
+          const truckMarker = L.marker(
+            [coords[stepIndex][1], coords[stepIndex][0]],
+            { icon: truckIcon(stepIndex) },
+          ).addTo(map).bindPopup(workerName ? `${workerName} בדרך אליך` : 'העובד בדרך אליך');
+
+          // Initial ETA
+          const initialRemaining = Math.round(osrmDuration * (1 - stepIndex / coords.length) / 60);
+          setLiveEta(initialRemaining);
+
+          // Advance truck every 2 seconds
+          intervalRef.current = setInterval(() => {
+            stepIndex = Math.min(stepIndex + 1, coords.length - 1);
+            const pos = [coords[stepIndex][1], coords[stepIndex][0]];
+            truckMarker.setLatLng(pos);
+
+            const remainingMinutes = Math.round(osrmDuration * (1 - stepIndex / coords.length) / 60);
+            setLiveEta(remainingMinutes);
+
+            if (stepIndex >= coords.length - 1) {
+              clearInterval(intervalRef.current);
+            }
+          }, 2000);
+        })
+        .catch(() => {
+          // Fallback: simple truck marker without route
+          const truckIcon = L.divIcon({
+            html: `<div style="background:#1e7fe0;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);font-size:18px;">🚛</div>`,
+            className: '', iconSize: [36, 36], iconAnchor: [18, 18],
+          });
+          L.marker([workerLat, workerLon], { icon: truckIcon })
+            .addTo(map)
+            .bindPopup(workerName ? `${workerName} בדרך אליך` : 'העובד בדרך אליך')
+            .openPopup();
+        });
+    };
+
+    if (window.L) {
+      initMap();
+    } else {
+      const existing = document.querySelector('script[src*="leaflet"]');
+      if (existing) {
+        existing.addEventListener('load', initMap);
+      } else {
+        const script  = document.createElement('script');
+        script.src    = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.onload = initMap;
+        document.head.appendChild(script);
+      }
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [workerLat, workerLon, clientLat, clientLon, workerName]);
+
+  return (
+    <div className="ch-map-wrap">
+      <div ref={mapRef} className="ch-map-real" />
+      {liveEta !== null && (
+        <div className="ch-map-eta-badge">
+          <Truck size={14}/>
+          צפי הגעה: {liveEta} דקות
+        </div>
+      )}
+    </div>
+  );
 }
+
+// ── ClientHome ─────────────────────────────────────────────────────────────────
 
 export default function ClientHome() {
   const navigate = useNavigate();
@@ -47,9 +163,16 @@ export default function ClientHome() {
   const { data: orders } = useApi(() => ordersAPI.getAll(), []);
   const list = orders || [];
 
-  const active = list.find(o => o.status === 'on_the_way');
-  const recent = list.filter(o => o.status === 'delivered').slice(0, 3);
-  const totalSpent = list.reduce((s, o) => s + (o.total ?? 0), 0);
+  const active      = list.find(o => o.status === 'on_the_way');
+  const recent      = list.filter(o => o.status === 'delivered').slice(0, 3);
+  const totalSpent  = list.reduce((s, o) => s + (o.total ?? 0), 0);
+
+  // Weekly orders (next 7 days)
+  const today   = new Date(); today.setHours(0, 0, 0, 0);
+  const weekEnd = new Date(today.getTime() + 7 * 86400000);
+  const weekOrders = list
+    .filter(o => { const d = new Date(o.date); return d >= today && d <= weekEnd; })
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   useEffect(() => {
     if (!active) return;
@@ -122,10 +245,56 @@ export default function ClientHome() {
           <div className="ch-progress-labels">
             <span>יצא מהמחסן</span><span>בדרך</span><span>הגיע</span>
           </div>
-          {(active.workerLat || active.workerLng) && (
-            <DeliveryMap lat={active.workerLat || 32.0853} lng={active.workerLng || 34.7818} />
+          {(active.workerLat || active.workerLon) && (
+            <LiveTrackingMap
+              workerLat={active.workerLat || 32.0853}
+              workerLon={active.workerLon || 34.7818}
+              clientLat={32.0721}
+              clientLon={34.7738}
+              workerName={active.workerName}
+              eta={active.eta}
+            />
           )}
           <div className="ch-tracker-total">סה"כ הזמנה: <strong>{fmt(active.total ?? 0)}</strong></div>
+        </Card>
+      )}
+
+      {/* ── Weekly Orders Timeline ── */}
+      {weekOrders.length > 0 && (
+        <Card>
+          <div className="ch-section-header">
+            <h2>הזמנות השבוע</h2>
+          </div>
+          <div className="ch-week">
+            {weekOrders.map(order => {
+              const d = new Date(order.date);
+              return (
+                <div key={order.id} className="ch-week-day">
+                  <div className="ch-week-date">
+                    <div className="ch-week-day-name">{DAY_NAMES[d.getDay()]}</div>
+                    <div className="ch-week-day-num">{d.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' })}</div>
+                  </div>
+                  <div className="ch-week-orders">
+                    <div className="ch-week-order">
+                      <div className="ch-order-items" style={{ flex: 1 }}>
+                        {(order.items || []).slice(0, 2).map((item, i) => (
+                          <span key={i} className="ch-order-item-chip">{item.name}</span>
+                        ))}
+                        {(order.items || []).length > 2 && (
+                          <span className="ch-order-item-chip">+{order.items.length - 2}</span>
+                        )}
+                        {(!order.items || order.items.length === 0) && (
+                          <span className="ch-order-item-chip">#{order.id}</span>
+                        )}
+                      </div>
+                      <div className="ch-order-total">{fmt(order.total ?? 0)}</div>
+                      {statusBadge(order.status)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </Card>
       )}
 

@@ -17,6 +17,10 @@ export const mockWorkers = [
 ];
 
 export const mockOrders = [
+  { id:'SO-LIVE', clientId:'C001', clientName:'מסעדת הגליל', date:new Date(), status:'on_the_way', total:1500, profit:525, workerName:'יוסי לוי', workerPhone:'054-1111111', workerLat:32.0953, workerLon:34.8018, items:[{name:'לחם כפרי',qty:10},{name:'שמן זית',qty:5}] },
+  { id:'SO-F001', clientId:'C001', clientName:'מסעדת הגליל', date:new Date(Date.now()+1*86400000), status:'pending', total:1800, profit:630, items:[{name:'קפה',qty:15},{name:'סוכר',qty:3}] },
+  { id:'SO-F002', clientId:'C001', clientName:'מסעדת הגליל', date:new Date(Date.now()+3*86400000), status:'pending', total:2100, profit:735, items:[{name:'שמן זית',qty:8},{name:'לחם כפרי',qty:6}] },
+  { id:'SO-F003', clientId:'C001', clientName:'מסעדת הגליל', date:new Date(Date.now()+5*86400000), status:'pending', total:950,  profit:332, items:[{name:'קמח',qty:20}] },
   { id: 'SO-0001', clientId: 'C001', clientName: 'מסעדת הגליל',  date: new Date(Date.now() - 1*86400000),  status: 'delivered', total: 1250, profit: 437,  items: [{name:'לחם כפרי',qty:10,price:12},{name:'שמן זית',qty:5,price:45}] },
   { id: 'SO-0002', clientId: 'C002', clientName: 'קפה תמר',      date: new Date(Date.now() - 2*86400000),  status: 'pending',   total: 875,  profit: 306,  items: [{name:'קפה',qty:20,price:30},{name:'סוכר',qty:5,price:15}] },
   { id: 'SO-0003', clientId: 'C004', clientName: 'סופרמרקט שלי', date: new Date(),                         status: 'pending',   total: 3200, profit: 1120, items: [{name:'שמן',qty:50,price:25},{name:'קמח',qty:30,price:8}] },
@@ -93,8 +97,8 @@ export const mockEmployerContact = {
 };
 
 export const mockTodayPickups = [
-  { id:'WH001', name:'מחסן מרכזי', address:'רחוב הברזל 14, תל אביב',      pickupTime:'07:45' },
-  { id:'WH002', name:'מחסן צפון',  address:'רחוב גיסין 10, פתח תקווה',    pickupTime:'08:30' },
+  { id:'WH001', name:'מחסן מרכזי', address:'רחוב הברזל 14, תל אביב',   pickupTime:'07:45', items:[{name:'לחם כפרי',qty:25},{name:'שמן זית',qty:10}] },
+  { id:'WH002', name:'מחסן צפון',  address:'רחוב גיסין 10, פתח תקווה', pickupTime:'08:30', items:[{name:'קפה',qty:35},{name:'סוכר',qty:8}] },
 ];
 
 export const mockClientProfile = {
@@ -106,6 +110,8 @@ export const mockClientProfile = {
   creditLimit:     10000,
   vacationDays:    0,
   nextDelivery:    { date: new Date().toISOString().split('T')[0], time: '09:30', id: 'DN-0001' },
+  lat:             32.0721,
+  lon:             34.7738,
 };
 
 export const mockLeaveRequests = [
