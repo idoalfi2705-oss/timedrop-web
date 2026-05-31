@@ -31,10 +31,10 @@ module.exports = async function handler(req, res) {
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model:      'llama-3.1-8b-instant',
+        model:      'gemma2-9b-it',
         messages:   [systemMessage, ...messages],
-        max_tokens: 1024,
-        temperature: 0.7,
+        max_tokens: 512,
+        temperature: 0.6,
       }),
     });
 

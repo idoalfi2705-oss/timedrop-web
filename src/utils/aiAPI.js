@@ -9,149 +9,109 @@ export function buildSystemPrompt(role, contextData = {}) {
     clientProfile = {},
   } = contextData;
 
-  const base = `אתה עוזר AI חכם של מערכת TimeDrop לניהול משלוחים. תמיד ענה בעברית בצורה קצרה וברורה. אל תשתמש בכוכביות (** **) לעיצוב — כתוב טקסט רגיל ונקודות (•) כשצריך לפרט.
-היום: ${new Date().toLocaleDateString('he-IL', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}.`;
+  const today = new Date().toLocaleDateString('he-IL');
+  const base = `עוזר AI של TimeDrop. ענה בעברית קצר וברור. השתמש בנקודות • לרשימות. ללא כוכביות. היום: ${today}.`;
 
   // ── Employer ────────────────────────────────────────────────────────────────
   if (role === 'employer') {
-    const ordersText = orders.slice(0, 15).map(o =>
-      `הזמנה ${o.id}: לקוח ${o.clientName} | סכום ₪${o.total} | סטטוס: ${
-        { delivered:'נמסר', pending:'ממתין', cancelled:'בוטל' }[o.status] || o.status
-      } | תאריך: ${new Date(o.date).toLocaleDateString('he-IL')}`
+    const ordersSnap = orders.slice(0, 10).map(o =>
+      `${o.id}|${o.clientName}|₪${o.total}|${{ delivered:'נמסר', pending:'ממתין', cancelled:'בוטל' }[o.status] || o.status}`
     ).join('\n');
 
-    const workersText = workers.map(w =>
-      `• ${w.name} | אזור: ${w.area} | ${w.deliveries} משלוחים | ${w.onTime}% בזמן | סטטוס: ${w.status === 'active' ? 'פעיל' : w.status}`
+    const workersSnap = workers.map(w =>
+      `${w.name}|${w.area}|${w.status === 'active' ? 'פעיל' : 'לא פעיל'}`
     ).join('\n');
 
-    const clientsText = clients.map(c =>
-      `• ${c.name} | אזור: ${c.area} | חוב: ₪${c.debt} | טלפון: ${c.phone || 'לא ידוע'}`
+    const clientsSnap = clients.map(c =>
+      `${c.name}|חוב ₪${c.debt}|טל׳ ${c.phone || '—'}`
     ).join('\n');
 
-    // Compute missed items: 3+ orders in days 8-30, absent last 7 days
+    // Missed items: 3+ orders days 8-30, absent last 7 days
     const DAY = 86400000;
     const now = Date.now();
-    const recentItemSet = new Set();
-    const olderItemFreq = {};
+    const recentSet = new Set();
+    const olderFreq = {};
     orders.forEach(o => {
-      const ageDays = (now - new Date(o.date).getTime()) / DAY;
+      const age = (now - new Date(o.date).getTime()) / DAY;
       (o.items || []).forEach(it => {
-        if (ageDays <= 7) recentItemSet.add(it.name);
-        else if (ageDays <= 30) olderItemFreq[it.name] = (olderItemFreq[it.name] || 0) + 1;
+        if (age <= 7) recentSet.add(it.name);
+        else if (age <= 30) olderFreq[it.name] = (olderFreq[it.name] || 0) + 1;
       });
     });
-    const missedList = Object.entries(olderItemFreq)
-      .filter(([name, n]) => n >= 3 && !recentItemSet.has(name))
+    const missed = Object.entries(olderFreq)
+      .filter(([n, c]) => c >= 3 && !recentSet.has(n))
       .sort(([, a], [, b]) => b - a)
-      .map(([name, n]) => `• ${name} — הוזמן ${n} פעמים בחודש שעבר, לא הוזמן ב-7 ימים האחרונים`)
-      .join('\n') || '• אין פריטים שהוזמנו 3+ פעמים ונעלמו לאחרונה';
+      .map(([n, c]) => `${n} (${c}×)`)
+      .join(', ') || 'אין';
 
-    const pendingOrders = orders.filter(o => o.status === 'pending');
-    const clientsWithDebt = clients.filter(c => c.debt > 0);
+    const pending = orders.filter(o => o.status === 'pending').length;
+    const withDebt = clients.filter(c => c.debt > 0).length;
 
-    return `${base}
-אתה עוזר למנהל/מעסיק.
-
-=== הזמנות (${orders.length} סה"כ, ${pendingOrders.length} ממתינות) ===
-${ordersText || 'אין נתונים'}
-
-=== עובדים ===
-${workersText || 'אין נתונים'}
-
-=== לקוחות (${clientsWithDebt.length} עם חוב פתוח) ===
-${clientsText || 'אין נתונים'}
-
-=== פריטים שנעלמו (הוזמנו 3+ פעמים בחודש שעבר אך לא ב-7 ימים האחרונים) ===
-${missedList}
-
-הנחיות תשובה:
-- "אילו פריטים פספסתי?" — ענה בנקודות • עם שם הפריט, כמות הזמנות, והמלצה לפנות ללקוח
-- "לקוחות עם חוב" — רשום כל לקוח בנקודה • עם שם + סכום חוב
-- "עובדים פעילים" — רשום כל עובד פעיל בנקודה • עם שם ואזור
-- "הזמנות ממתינות" — רשום כל הזמנה ממתינה בנקודה • עם מספר, לקוח וסכום`;
+    return `${base} תפקיד: מנהל.
+הזמנות (${orders.length} סה"כ, ${pending} ממתינות):
+${ordersSnap || 'אין'}
+עובדים:
+${workersSnap || 'אין'}
+לקוחות (${withDebt} עם חוב):
+${clientsSnap || 'אין'}
+פריטים שנעלמו (3+ פעמים בחודש שעבר, לא הוזמנו 7 ימים): ${missed}
+כשנשאלים "אילו פריטים פספסתי?" — פרט בנקודות • שם הפריט וכמות ההזמנות.
+כשנשאלים על לקוחות עם חוב — פרט בנקודות. כשנשאלים על עובדים — פרט בנקודות.`;
   }
 
   // ── Worker ──────────────────────────────────────────────────────────────────
   if (role === 'worker') {
-    const pendingDeliveries = deliveries.filter(d => d.status !== 'delivered');
-    const deliveriesText = deliveries.map(d =>
-      `משלוח ${d.id} | לקוח: ${d.clientName} | כתובת: ${d.address} | שעה: ${d.arrivalTime || '—'} | טלפון לקוח: ${d.clientPhone || '—'} | סטטוס: ${d.status === 'delivered' ? 'נמסר' : 'ממתין'}`
+    const pending = deliveries.filter(d => d.status !== 'delivered');
+    const delSnap = deliveries.map(d =>
+      `${d.id}|${d.clientName}|${d.address}|${d.arrivalTime || '—'}|טל׳ ${d.clientPhone || '—'}|${d.status === 'delivered' ? 'נמסר' : 'ממתין'}`
     ).join('\n');
 
-    const pickupsText = pickups.map(p =>
-      `• ${p.name} | כתובת: ${p.address} | שעת איסוף: ${p.pickupTime || '—'}`
-    ).join('\n') || '• אין איסופים היום';
+    const pickSnap = pickups.map(p => `${p.name}|${p.address}|${p.pickupTime || '—'}`).join('\n') || 'אין';
 
     const totalMins = deliveries.reduce((s, d) => s + (d.drivingMinutes || 0), 0);
     const driveHrs  = Math.floor(totalMins / 60);
     const driveMins = totalMins % 60;
-    const driveText = driveHrs > 0 ? `${driveHrs} שעות ו-${driveMins} דקות` : `${driveMins} דקות`;
+    const driveStr  = driveHrs > 0 ? `${driveHrs}ש' ${driveMins}ד'` : `${driveMins} דקות`;
 
-    const phonesText = deliveries.map(d =>
-      `• ${d.clientName} | ${d.address} | טלפון: ${d.clientPhone || '—'}`
-    ).join('\n');
-
-    return `${base}
-אתה עוזר לעובד/שליח בשטח. ענה קצר וממוקד.
-
-=== משלוחי היום (${deliveries.length} סה"כ, ${pendingDeliveries.length} ממתינים) ===
-${deliveriesText || 'אין משלוחים'}
-
-=== מחסנים לאיסוף סחורה (${pickups.length}) ===
-${pickupsText}
-
-=== נתוני החודש הנוכחי ===
-שעות עבודה: ${workerStats.hoursWorked || 0}
-ימי חופשה שנותרו: ${workerStats.vacationDaysRemaining || 0}
-ימי חופשה שנוצלו: ${workerStats.vacationDaysUsed || 0}
-
-=== פרטי מעסיק ===
-שם: ${employerContact.name || '—'} | טלפון: ${employerContact.phone || '—'}
-
-=== זמן נסיעה משוער ללא עצירות ===
-${driveText} (${totalMins} דקות סה"כ)
-
-=== טלפונים של לקוחות היום ===
-${phonesText || 'אין'}
-
-הנחיות תשובה:
-- "כמה משלוחים פתוחים לי?" — כתוב: "יש לך ${pendingDeliveries.length} משלוחים פתוחים:" ואז פרט כל אחד בנקודה: "• מספר משלוח: [ID] | לאן: [כתובת] | שעה: [שעה]"
-- "כמה שעות עבדתי החודש?" — ענה: "עבדת ${workerStats.hoursWorked || 0} שעות החודש"
-- "כמה ימי חופשה יש לי?" — ענה: "נותרו לך ${workerStats.vacationDaysRemaining || 0} ימי חופשה (ניצלת ${workerStats.vacationDaysUsed || 0} ימים)"
-- "כמה מחסנים אני צריך לאסוף?" — ענה עם ${pickups.length} מחסנים וכתובותיהם בנקודות
-- "כמה זמן נסיעה?" — ענה: "זמן הנסיעה המשוער שלך היום הוא ${driveText} ללא עצירות"
-- "טלפונים של לקוחות" — ענה בנקודות עם שם לקוח, שם חנות וטלפון
-- "טלפון של המעסיק" — ענה: "המעסיק ${employerContact.name || '—'}, טלפון: ${employerContact.phone || '—'}"`;
+    return `${base} תפקיד: שליח.
+משלוחים היום (${deliveries.length} סה"כ, ${pending.length} ממתינים):
+${delSnap || 'אין'}
+מחסנים לאיסוף (${pickups.length}):
+${pickSnap}
+החודש: ${workerStats.hoursWorked || 0} שעות | חופשה: ${workerStats.vacationDaysRemaining || 0} ימים נותרו (${workerStats.vacationDaysUsed || 0} נוצלו)
+מעסיק: ${employerContact.name || '—'} | טל׳ ${employerContact.phone || '—'}
+נסיעה משוערת: ${driveStr} (${totalMins} דקות ללא עצירות)
+תשובות:
+• "כמה משלוחים פתוחים" → "${pending.length} פתוחים:" ואז כל אחד: "• [ID] | לאן: [כתובת] | שעה: [שעה]"
+• "כמה שעות עבדתי" → "${workerStats.hoursWorked || 0} שעות החודש"
+• "ימי חופשה" → "${workerStats.vacationDaysRemaining || 0} ימים נותרו, ${workerStats.vacationDaysUsed || 0} נוצלו"
+• "כמה מחסנים" → "${pickups.length} מחסנים" + כתובות בנקודות
+• "זמן נסיעה" → "${driveStr} ללא עצירות"
+• "טלפונים לקוחות" → נקודות: "• [שם] | [חנות] | טל׳ [מספר]"
+• "טלפון מעסיק" → "${employerContact.name || '—'}, טל׳ ${employerContact.phone || '—'}"`;
   }
 
   // ── Client ──────────────────────────────────────────────────────────────────
   if (role === 'client') {
-    const myOrders = orders.slice(0, 10);
-    const ordersText = myOrders.map(o =>
-      `הזמנה ${o.id} | תאריך: ${new Date(o.date).toLocaleDateString('he-IL')} | סכום: ₪${o.total} | סטטוס: ${
+    const myOrders = orders.slice(0, 8);
+    const ordSnap  = myOrders.map(o =>
+      `${o.id}|${new Date(o.date).toLocaleDateString('he-IL')}|₪${o.total}|${
         { delivered:'נמסרה', pending:'בדרך', cancelled:'בוטלה' }[o.status] || o.status
       }`
     ).join('\n');
 
-    const nextDelivery = clientProfile.nextDelivery;
+    const nd   = clientProfile.nextDelivery;
     const debt = clientProfile.debt || 0;
-    const creditLimit = clientProfile.creditLimit || 0;
 
-    return `${base}
-אתה עוזר ידידותי ללקוח.
-
-=== הזמנות אחרונות (${myOrders.length}) ===
-${ordersText || 'אין הזמנות'}
-
-=== פרטי חשבון ===
-חוב פתוח: ₪${debt}
-מסגרת אשראי: ₪${creditLimit}
-${nextDelivery ? `משלוח הבא: ${nextDelivery.date} בשעה ${nextDelivery.time}` : ''}
-
-הנחיות תשובה:
-- "מה סטטוס ההזמנה?" — רשום כל הזמנה בנקודה • עם מספר, תאריך וסטטוס
-- "כמה חוב יש לי?" — ענה: "החוב הפתוח שלך הוא ₪${debt}"
-- "מתי יגיע המשלוח?" — ${nextDelivery ? `ענה: "המשלוח הבא שלך צפוי ב-${nextDelivery.date} בשעה ${nextDelivery.time}"` : 'ענה שאין משלוח קרוב מתוזמן'}`;
+    return `${base} תפקיד: לקוח.
+הזמנות (${myOrders.length}):
+${ordSnap || 'אין'}
+חוב: ₪${debt} | מסגרת: ₪${clientProfile.creditLimit || 0}
+${nd ? `משלוח הבא: ${nd.date} ${nd.time}` : ''}
+תשובות:
+• "סטטוס הזמנה" → נקודות עם מספר, תאריך, סטטוס
+• "כמה חוב" → "חוב פתוח: ₪${debt}"
+• "מתי משלוח" → ${nd ? `"${nd.date} בשעה ${nd.time}"` : '"אין משלוח מתוזמן"'}`;
   }
 
   return base;
