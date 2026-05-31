@@ -62,7 +62,8 @@ export default function Chat() {
   return (
     <>
       <button className="chat-fab" onClick={() => setOpen(o => !o)}>
-        <MessageCircle size={24} />
+        <MessageCircle size={18} />
+        <span>צ'אט</span>
         {totalUnread > 0 && <span className="chat-fab-badge">{totalUnread}</span>}
       </button>
 

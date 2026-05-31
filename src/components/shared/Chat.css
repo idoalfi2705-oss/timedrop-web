@@ -1,33 +1,36 @@
 .chat-fab {
   position: fixed;
   bottom: 24px;
-  left: 24px;
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  background: var(--blue-600);
+  right: 88px; /* adjacent to AI FAB at right:24px */
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 12px 0 0 12px;
+  background: var(--blue-900);
   color: #fff;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 18px rgba(26, 86, 219, 0.45);
-  z-index: 500;
-  transition: transform 0.2s, background 0.2s;
+  gap: 6px;
+  box-shadow: -2px 4px 16px rgba(10, 36, 99, 0.35);
+  z-index: 1100;
+  font-family: 'Heebo', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  transition: filter 0.2s;
 }
-.chat-fab:hover { transform: scale(1.08); background: #1648c0; }
+.chat-fab:hover { filter: brightness(1.15); }
 
 .chat-fab-badge {
   position: absolute;
-  top: -2px;
-  left: -2px;
-  width: 18px;
-  height: 18px;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--danger);
   color: #fff;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -37,8 +40,8 @@
 
 .chat-panel {
   position: fixed;
-  bottom: 90px;
-  left: 24px;
+  bottom: 84px;
+  right: 88px;
   width: 320px;
   height: 460px;
   background: #fff;
@@ -189,5 +192,5 @@
     width: auto;
     bottom: 80px;
   }
-  .chat-fab { bottom: 16px; left: 16px; }
+  .chat-fab { bottom: 16px; right: 80px; border-radius: 10px 0 0 10px; }
 }
